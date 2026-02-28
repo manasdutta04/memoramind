@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+.env
+.pytest_cache/
+.mypy_cache/
+coverage/
+backend/chroma_db/
+backend/app/data/profiles.json
+backend/app/data/conversations.json
+frontend/node_modules/
+frontend/dist/
+.DS_Store

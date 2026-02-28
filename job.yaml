@@ -1,0 +1,16 @@
+name: memoramind-finetune
+image: huggingface/trl-latest:latest
+resources:
+  gpu: a10g-large
+  cpus: 8
+  memory: 32Gi
+env:
+  HF_HOME: /data/.cache/huggingface
+  TRANSFORMERS_CACHE: /data/.cache/huggingface
+  HUGGINGFACE_HUB_CACHE: /data/.cache/huggingface
+command:
+  - pip install --upgrade pip
+  - pip install trl transformers datasets peft accelerate bitsandbytes
+  - python finetune.py --model_name mistralai/Mistral-7B-Instruct-v0.3 --output_dir /data/outputs/memoramind-sft --num_train_epochs 1.0 --batch_size 2 --grad_accum 8
+outputs:
+  - /data/outputs
