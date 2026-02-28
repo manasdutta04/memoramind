@@ -33,13 +33,19 @@ class LLMService:
             return self.settings.mistral_ca_bundle.strip()
         return self.settings.mistral_verify_ssl
 
-    async def _chat_completion(self, messages: list[dict[str, str]], temperature: float = 0.5) -> str:
-        if not self.settings.mistral_api_key:
-            raise RuntimeError("MISTRAL_API_KEY is not configured")
+    async def _chat_completion(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.5,
+        api_key_override: str | None = None,
+    ) -> str:
+        api_key = (api_key_override or "").strip() or self.settings.mistral_api_key
+        if not api_key:
+            raise RuntimeError("Mistral API key is not configured. Add your key in Settings.")
 
         url = f"{self.settings.mistral_api_base}/chat/completions"
         headers = {
-            "Authorization": f"Bearer {self.settings.mistral_api_key}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
         payload: dict[str, Any] = {
@@ -139,6 +145,7 @@ class LLMService:
         memories: list[str],
         user_message: str,
         elder_name: str,
+        api_key_override: str | None = None,
     ) -> tuple[str, bool, str | None]:
         messages = [
             {"role": "system", "content": self.build_companion_system_prompt(language, memories)},
@@ -149,7 +156,11 @@ class LLMService:
         ]
 
         try:
-            reply = await self._chat_completion(messages=messages, temperature=0.45)
+            reply = await self._chat_completion(
+                messages=messages,
+                temperature=0.45,
+                api_key_override=api_key_override,
+            )
             if reply:
                 return reply, False, None
         except Exception as exc:
@@ -159,7 +170,13 @@ class LLMService:
 
         return self._local_companion_fallback(elder_name, user_message, memories), True, "Mistral returned empty content"
 
-    async def summarize_sessions(self, elder_name: str, language: str, transcripts: list[str]) -> str:
+    async def summarize_sessions(
+        self,
+        elder_name: str,
+        language: str,
+        transcripts: list[str],
+        api_key_override: str | None = None,
+    ) -> str:
         if not transcripts:
             return f"No conversations recorded today for {elder_name}."
 
@@ -174,7 +191,11 @@ class LLMService:
         ]
 
         try:
-            reply = await self._chat_completion(messages=messages, temperature=0.2)
+            reply = await self._chat_completion(
+                messages=messages,
+                temperature=0.2,
+                api_key_override=api_key_override,
+            )
             if reply:
                 return reply
         except Exception as exc:

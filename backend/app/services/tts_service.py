@@ -11,16 +11,21 @@ class TTSService:
     def __init__(self) -> None:
         self.settings = get_settings()
 
-    async def synthesize(self, text: str) -> tuple[str | None, str | None, bool]:
+    async def synthesize(
+        self,
+        text: str,
+        api_key_override: str | None = None,
+    ) -> tuple[str | None, str | None, bool]:
         """
         Returns (audio_base64, mime_type, tts_fallback).
         """
-        if not self.settings.elevenlabs_api_key:
+        elevenlabs_api_key = (api_key_override or "").strip() or self.settings.elevenlabs_api_key
+        if not elevenlabs_api_key:
             return None, None, True
 
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{self.settings.elevenlabs_voice_id}"
         headers = {
-            "xi-api-key": self.settings.elevenlabs_api_key,
+            "xi-api-key": elevenlabs_api_key,
             "Content-Type": "application/json",
             "Accept": "audio/mpeg",
         }

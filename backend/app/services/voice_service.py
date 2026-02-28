@@ -34,6 +34,8 @@ class VoiceService:
         audio_bytes: bytes | None,
         audio_filename: str | None = None,
         user_text_override: str | None = None,
+        mistral_api_key: str | None = None,
+        elevenlabs_api_key: str | None = None,
     ) -> dict[str, Any]:
         profile = self.data_store.get_profile(elder_id)
         if not profile:
@@ -55,11 +57,15 @@ class VoiceService:
             memories=memories,
             user_message=transcript,
             elder_name=profile.get("elder_name", "Friend"),
+            api_key_override=mistral_api_key,
         )
 
         mood, distress = self.insight_service.detect_mood(transcript, assistant_text)
         topics = self.insight_service.extract_topics(transcript, assistant_text)
-        audio_base64, audio_mime_type, tts_fallback = await self.tts_service.synthesize(assistant_text)
+        audio_base64, audio_mime_type, tts_fallback = await self.tts_service.synthesize(
+            assistant_text,
+            api_key_override=elevenlabs_api_key,
+        )
 
         self.data_store.append_conversation(
             elder_id=elder_id,

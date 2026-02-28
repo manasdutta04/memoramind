@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useRef, useState } from 'react';
 
 type RecorderState = 'idle' | 'recording' | 'processing';
@@ -60,13 +62,11 @@ export function useVoiceRecorder() {
     });
   }, [stopTracks]);
 
-  const resetError = useCallback(() => setError(''), []);
-
   return {
     state,
     error,
     start,
     stop,
-    resetError
+    clearError: () => setError('')
   };
 }

@@ -13,7 +13,7 @@ class DashboardService:
         self.data_store = data_store
         self.llm_service = llm_service
 
-    async def get_dashboard(self, elder_id: str) -> dict[str, Any]:
+    async def get_dashboard(self, elder_id: str, mistral_api_key: str | None = None) -> dict[str, Any]:
         profile = self.data_store.get_profile(elder_id)
         if not profile:
             raise ValueError("Profile not found")
@@ -49,6 +49,7 @@ class DashboardService:
             elder_name=profile.get("elder_name", "Your loved one"),
             language=profile.get("language", "English"),
             transcripts=transcripts,
+            api_key_override=mistral_api_key,
         )
 
         return {

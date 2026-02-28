@@ -27,7 +27,7 @@ export type VoiceChatResponse = {
   elder_id: string;
   transcript: string;
   assistant_text: string;
-  mood: 'Happy' | 'Calm' | 'Confused' | 'Distressed' | string;
+  mood: string;
   distress: boolean;
   topics: string[];
   tts_fallback: boolean;
@@ -41,8 +41,13 @@ export type DashboardResponse = {
   elder_id: string;
   elder_name: string;
   summary: string;
-  mood: 'Happy' | 'Calm' | 'Confused' | 'Distressed' | string;
+  mood: string;
   topics: string[];
   distress_alerts: string[];
   sessions_today: number;
+};
+
+export type ApiKeys = {
+  mistralKey: string;
+  elevenLabsKey: string;
 };

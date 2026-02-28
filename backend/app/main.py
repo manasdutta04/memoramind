@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -131,6 +131,8 @@ async def voice_chat(
     elder_id: str = Form(...),
     audio: UploadFile | None = File(default=None),
     user_text: str | None = Form(default=None),
+    mistral_api_key: str | None = Header(default=None, alias="x-mistral-api-key"),
+    elevenlabs_api_key: str | None = Header(default=None, alias="x-elevenlabs-api-key"),
     voice_service: VoiceService = Depends(get_voice_service),
 ) -> VoiceChatResponse:
     if not audio and not (user_text and user_text.strip()):
@@ -143,6 +145,8 @@ async def voice_chat(
             audio_bytes=audio_bytes,
             audio_filename=audio.filename if audio else None,
             user_text_override=user_text,
+            mistral_api_key=mistral_api_key,
+            elevenlabs_api_key=elevenlabs_api_key,
         )
         return VoiceChatResponse(**result)
     except ValueError as exc:
@@ -158,10 +162,14 @@ async def voice_chat(
 )
 async def get_dashboard(
     elder_id: str,
+    mistral_api_key: str | None = Header(default=None, alias="x-mistral-api-key"),
     dashboard_service: DashboardService = Depends(get_dashboard_service),
 ) -> DashboardResponse:
     try:
-        response = await dashboard_service.get_dashboard(elder_id)
+        response = await dashboard_service.get_dashboard(
+            elder_id=elder_id,
+            mistral_api_key=mistral_api_key,
+        )
         return DashboardResponse(**response)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
