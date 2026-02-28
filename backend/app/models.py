@@ -40,6 +40,8 @@ class VoiceChatResponse(BaseModel):
     distress: bool
     topics: list[str]
     tts_fallback: bool
+    llm_fallback: bool = False
+    llm_error: str | None = None
     audio_base64: str | None = None
     audio_mime_type: str | None = None
 

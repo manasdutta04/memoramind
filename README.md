@@ -72,7 +72,12 @@ Required for full functionality:
 Optional:
 
 - `MISTRAL_MODEL` (default: `mistral-large-latest`)
+- `MISTRAL_API_BASE` (default: `https://api.mistral.ai/v1`)
+- `MISTRAL_VERIFY_SSL` (default: `true`)
+- `MISTRAL_CA_BUNDLE` (optional path to custom CA bundle for corporate TLS)
 - `WHISPER_MODEL_SIZE` (default: `base`)
+- `WHISPER_DOWNLOAD_ROOT` (default: `.cache/whisper`)
+- `WHISPER_INSECURE_DOWNLOAD` (default: `false`, local development only)
 - `CORS_ORIGINS` (default: `*`)
 
 ## Run Locally
@@ -80,10 +85,10 @@ Optional:
 ### 1) Backend
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload --app-dir backend
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload --app-dir backend
 ```
 
 ### 2) Frontend (dev mode)
@@ -95,6 +100,14 @@ npm run dev
 ```
 
 Frontend dev server runs on `5173`, proxied to backend `7860`.
+
+Quick backend check before using the UI:
+
+```bash
+curl http://127.0.0.1:7860/health
+```
+
+You should get a JSON response like `{\"status\":\"ok\",\"app\":\"MemoraMind\"}`.
 
 ## Production / HuggingFace Space (Single Container)
 
@@ -169,3 +182,23 @@ Artifacts are saved to the configured output path (adapter/model + tokenizer).
 - If ElevenLabs synthesis fails, frontend falls back to browser speech synthesis automatically.
 - Whisper uses local model inference and requires FFmpeg.
 - India dementia stat shown in UI: "~8.8 million" with source note "Alzheimer’s Disease International (India estimate), 2024".
+
+## Troubleshooting
+
+- `vite http proxy error ... ECONNREFUSED` means backend is not running on `127.0.0.1:7860`.
+- `Request failed (500)` in frontend during local dev usually comes from Vite proxy when backend is down.
+- If backend exits on startup, reinstall deps in your venv:
+  - `pip install -r requirements.txt`
+- `SSL: CERTIFICATE_VERIFY_FAILED` during Whisper load means model download is blocked by your network cert chain.
+  - Use companion text input mode immediately (already built in UI).
+  - Preferred fix: ensure system/Python trust store includes your corporate CA and retry.
+  - Alternative: pre-download Whisper model files in `WHISPER_DOWNLOAD_ROOT`.
+  - Last-resort local workaround: set `WHISPER_INSECURE_DOWNLOAD=true` in `.env` (do not use in production).
+- `Speech transcription failed: ... ffmpeg` means ffmpeg is missing on your machine.
+  - macOS: `brew install ffmpeg`
+  - Ubuntu/Debian: `sudo apt-get install -y ffmpeg`
+  - Then restart backend: `python3 -m uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload --app-dir backend`
+- If replies keep looking like local fallback (and not Mistral-quality responses), check backend logs for:
+  - `Mistral generation failed; using local fallback: ...`
+  - Common causes: invalid `MISTRAL_API_KEY`, SSL interception, or blocked outbound access.
+  - For SSL interception, set `MISTRAL_CA_BUNDLE=/path/to/corp-ca.pem` (preferred) or `MISTRAL_VERIFY_SSL=false` for local-only debugging.

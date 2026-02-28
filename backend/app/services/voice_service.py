@@ -50,7 +50,7 @@ class VoiceService:
             raise ValueError("No audio or text input was provided.")
 
         memories = self.memory_service.retrieve_memories(elder_id=elder_id, query=transcript, limit=6)
-        assistant_text = await self.llm_service.generate_companion_reply(
+        assistant_text, llm_fallback, llm_error = await self.llm_service.generate_companion_reply(
             language=profile.get("language", "English"),
             memories=memories,
             user_message=transcript,
@@ -83,4 +83,6 @@ class VoiceService:
             "audio_base64": audio_base64,
             "audio_mime_type": audio_mime_type,
             "tts_fallback": tts_fallback,
+            "llm_fallback": llm_fallback,
+            "llm_error": llm_error,
         }

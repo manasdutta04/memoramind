@@ -31,6 +31,8 @@ export type VoiceChatResponse = {
   distress: boolean;
   topics: string[];
   tts_fallback: boolean;
+  llm_fallback?: boolean;
+  llm_error?: string | null;
   audio_base64: string | null;
   audio_mime_type: string | null;
 };

@@ -6,8 +6,14 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:7860',
-      '/health': 'http://localhost:7860'
+      '/api': {
+        target: 'http://127.0.0.1:7860',
+        changeOrigin: true
+      },
+      '/health': {
+        target: 'http://127.0.0.1:7860',
+        changeOrigin: true
+      }
     }
   },
   test: {

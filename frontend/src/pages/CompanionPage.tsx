@@ -29,6 +29,7 @@ export function CompanionPage() {
   const [transcript, setTranscript] = useState('');
   const [mood, setMood] = useState('Calm');
   const [topics, setTopics] = useState<string[]>([]);
+  const [llmNotice, setLlmNotice] = useState('');
   const [textInput, setTextInput] = useState('');
 
   const micState = useMemo(() => {
@@ -82,6 +83,15 @@ export function CompanionPage() {
     setTranscript(payload.transcript);
     setMood(payload.mood);
     setTopics(payload.topics || []);
+    if (payload.llm_fallback) {
+      setLlmNotice(
+        payload.llm_error
+          ? `Using local companion mode right now (${payload.llm_error}).`
+          : 'Using local companion mode right now because cloud generation is unavailable.'
+      );
+    } else {
+      setLlmNotice('');
+    }
     await playAudio(payload);
   };
 
@@ -170,6 +180,7 @@ export function CompanionPage() {
 
         <div className="mt-8 w-full max-w-3xl rounded-2xl border border-accent/20 bg-black/25 p-4">
           <p className="mb-2 text-xs uppercase tracking-wider text-slate-400">Backup text mode (for demo reliability)</p>
+          {llmNotice && <p className="mb-3 text-xs text-amber-300">{llmNotice}</p>}
           <div className="flex flex-col gap-3 md:flex-row">
             <input
               className="flex-1 rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-base text-white"
