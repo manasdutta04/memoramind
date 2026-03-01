@@ -81,6 +81,14 @@ export async function chatWithVoice(params: {
     form.append('user_text', params.userText.trim());
   }
 
+  // Send keys in form body (HF Spaces strips custom headers)
+  if (params.keys?.mistralKey?.trim()) {
+    form.append('mistral_key', params.keys.mistralKey.trim());
+  }
+  if (params.keys?.elevenLabsKey?.trim()) {
+    form.append('elevenlabs_key', params.keys.elevenLabsKey.trim());
+  }
+
   return request<VoiceChatResponse>('/api/voice/chat', {
     init: {
       method: 'POST',
@@ -91,5 +99,11 @@ export async function chatWithVoice(params: {
 }
 
 export async function getDashboard(elderId: string, keys: ApiKeys): Promise<DashboardResponse> {
-  return request<DashboardResponse>(`/api/dashboard/${encodeURIComponent(elderId)}`, { keys });
+  const params = new URLSearchParams();
+  if (keys?.mistralKey?.trim()) {
+    params.set('mistral_key', keys.mistralKey.trim());
+  }
+  const qs = params.toString();
+  const path = `/api/dashboard/${encodeURIComponent(elderId)}${qs ? `?${qs}` : ''}`;
+  return request<DashboardResponse>(path, { keys });
 }

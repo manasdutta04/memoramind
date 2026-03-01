@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -131,12 +131,18 @@ async def voice_chat(
     elder_id: str = Form(...),
     audio: UploadFile | None = File(default=None),
     user_text: str | None = Form(default=None),
+    mistral_key: str | None = Form(default=None),
+    elevenlabs_key: str | None = Form(default=None),
     mistral_api_key: str | None = Header(default=None, alias="x-mistral-api-key"),
     elevenlabs_api_key: str | None = Header(default=None, alias="x-elevenlabs-api-key"),
     voice_service: VoiceService = Depends(get_voice_service),
 ) -> VoiceChatResponse:
     if not audio and not (user_text and user_text.strip()):
         raise HTTPException(status_code=400, detail="Either audio file or user_text must be provided")
+
+    # Prefer form body keys (work through HF Spaces proxy), fall back to headers
+    resolved_mistral = (mistral_key or "").strip() or (mistral_api_key or "").strip() or None
+    resolved_elevenlabs = (elevenlabs_key or "").strip() or (elevenlabs_api_key or "").strip() or None
 
     try:
         audio_bytes = await audio.read() if audio else None
@@ -145,8 +151,8 @@ async def voice_chat(
             audio_bytes=audio_bytes,
             audio_filename=audio.filename if audio else None,
             user_text_override=user_text,
-            mistral_api_key=mistral_api_key,
-            elevenlabs_api_key=elevenlabs_api_key,
+            mistral_api_key=resolved_mistral,
+            elevenlabs_api_key=resolved_elevenlabs,
         )
         return VoiceChatResponse(**result)
     except ValueError as exc:
@@ -162,13 +168,15 @@ async def voice_chat(
 )
 async def get_dashboard(
     elder_id: str,
+    mistral_key: str | None = Query(default=None),
     mistral_api_key: str | None = Header(default=None, alias="x-mistral-api-key"),
     dashboard_service: DashboardService = Depends(get_dashboard_service),
 ) -> DashboardResponse:
+    resolved_key = (mistral_key or "").strip() or (mistral_api_key or "").strip() or None
     try:
         response = await dashboard_service.get_dashboard(
             elder_id=elder_id,
-            mistral_api_key=mistral_api_key,
+            mistral_api_key=resolved_key,
         )
         return DashboardResponse(**response)
     except ValueError as exc:
