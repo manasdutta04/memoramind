@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { ApiKeyBanner } from '@/components/ApiKeyBanner';
+
 import { GlassCard } from '@/components/GlassCard';
 import { MoodBadge } from '@/components/MoodBadge';
 import { getDashboard } from '@/lib/api';
@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl px-5 py-10">
-      <ApiKeyBanner keys={keys} />
+
 
       <header className="mb-10 flex items-center justify-between border-b-4 border-night pb-6">
         <div>
