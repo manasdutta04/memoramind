@@ -70,12 +70,20 @@ export default function DashboardPage() {
             {data?.elder_name ?? (profile?.elder_name as string) ?? 'Loved One'} — Today
           </h1>
         </div>
-        <Link
-          className="border-4 border-night bg-primary px-6 py-3 text-sm font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
-          href={`/companion/${elderId}`}
-        >
-          Open Companion
-        </Link>
+        <div className="flex gap-4">
+          <Link
+            className="border-4 border-night bg-white px-6 py-3 text-sm font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            href="/family"
+          >
+            ← My Family
+          </Link>
+          <Link
+            className="border-4 border-night bg-primary px-6 py-3 text-sm font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            href={`/companion/${elderId}`}
+          >
+            Open Companion
+          </Link>
+        </div>
       </header>
 
       {loading && <p className="mb-8 font-bold text-night">Loading dashboard...</p>}

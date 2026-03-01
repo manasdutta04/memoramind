@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { GlassCard } from '@/components/GlassCard';
 import { onboard } from '@/lib/api';
-import { saveProfile, setActiveElder } from '@/lib/storage';
+import { saveProfile, setActiveElder, registerElder } from '@/lib/storage';
 import type { FamilyMember, OnboardPayload } from '@/lib/types';
 
 function splitLines(value: string): string[] {
@@ -69,7 +69,14 @@ export default function OnboardingPage() {
       const response = await onboard(payload);
       setActiveElder(response.elder_id);
       saveProfile(response.elder_id, { ...payload, elder_id: response.elder_id });
-      router.push(`/companion/${response.elder_id}`);
+      registerElder({
+        elderId: response.elder_id,
+        name: elderName,
+        age,
+        language,
+        addedAt: new Date().toISOString(),
+      });
+      router.push('/family');
     } catch (err) {
       setError((err as Error).message);
     } finally {

@@ -46,7 +46,7 @@ export default function LandingPage() {
 
             <div className="mt-12 flex flex-wrap gap-6">
               <button
-                onClick={() => router.push('/onboarding')}
+                onClick={() => router.push('/family')}
                 className="border-4 border-night bg-primary px-8 py-4 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
               >
                 Set Up for a Loved One
@@ -144,7 +144,7 @@ export default function LandingPage() {
         <h2 className="text-4xl font-black uppercase tracking-tight">Ready to bridge the memory gap?</h2>
         <div className="mt-8 flex justify-center gap-6">
           <button
-            onClick={() => router.push('/onboarding')}
+            onClick={() => router.push('/family')}
             className="border-4 border-night bg-accent px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
           >
             Start Onboarding
