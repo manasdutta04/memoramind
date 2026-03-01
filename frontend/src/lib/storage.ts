@@ -95,3 +95,42 @@ export function loadApiKeys(): ApiKeys {
     return { mistralKey: '', elevenLabsKey: '' };
   }
 }
+
+/* ---- Conversation History ---- */
+
+const CONVO_KEY_PREFIX = 'memoramind.conversations.';
+
+export interface ConversationEntry {
+  timestamp: string;
+  userText: string;
+  aiText: string;
+  mood: string;
+  topics: string[];
+}
+
+export function saveConversation(elderId: string, entry: ConversationEntry): void {
+  if (typeof window === 'undefined') return;
+  const history = getConversationHistory(elderId);
+  history.push(entry);
+  // Keep last 50 conversations
+  const trimmed = history.slice(-50);
+  localStorage.setItem(`${CONVO_KEY_PREFIX}${elderId}`, JSON.stringify(trimmed));
+}
+
+export function getConversationHistory(elderId: string): ConversationEntry[] {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem(`${CONVO_KEY_PREFIX}${elderId}`);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as ConversationEntry[];
+  } catch {
+    return [];
+  }
+}
+
+export function getLatestMood(elderId: string): string | null {
+  const history = getConversationHistory(elderId);
+  if (history.length === 0) return null;
+  return history[history.length - 1].mood;
+}
+

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { GlassCard } from '@/components/GlassCard';
 import { loadDemo } from '@/lib/api';
-import { getAllElders, removeElder, setActiveElder, saveProfile, registerElder } from '@/lib/storage';
+import { getAllElders, removeElder, setActiveElder, saveProfile, registerElder, getLatestMood, getConversationHistory } from '@/lib/storage';
 import type { ElderEntry } from '@/lib/storage';
 
 export default function FamilyPage() {
@@ -80,6 +80,28 @@ export default function FamilyPage() {
 
             {error && <p className="mb-8 border-4 border-night bg-alert p-4 font-bold text-white shadow-brutal">{error}</p>}
 
+            {/* Distress Alerts */}
+            {elders.filter((e) => {
+                const mood = getLatestMood(e.elderId);
+                return mood && (mood.toLowerCase().includes('distress') || mood.toLowerCase().includes('anxious') || mood.toLowerCase().includes('scared'));
+            }).map((e) => (
+                <div key={`alert-${e.elderId}`} className="mb-6 flex items-center gap-4 border-4 border-alert bg-red-50 p-5 shadow-brutal animate-pulse">
+                    <span className="text-3xl">🚨</span>
+                    <div>
+                        <p className="text-lg font-black uppercase text-alert">Distress Alert — {e.name}</p>
+                        <p className="font-bold text-night/70">
+                            {e.name} showed signs of distress in their last conversation. Consider reaching out or starting a companion session.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => handleTalk(e.elderId)}
+                        className="ml-auto shrink-0 border-4 border-night bg-primary px-6 py-3 font-black uppercase text-white shadow-brutal-sm"
+                    >
+                        Talk Now
+                    </button>
+                </div>
+            ))}
+
             {elders.length === 0 ? (
                 <GlassCard className="flex flex-col items-center bg-white px-8 py-16 text-center">
                     <p className="text-6xl">👨‍👩‍👧‍👦</p>
@@ -92,18 +114,31 @@ export default function FamilyPage() {
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {elders.map((elder) => (
                         <GlassCard key={elder.elderId} className="flex flex-col bg-white p-6">
-                            <div className="mb-6 flex items-start justify-between">
+                            <div className="mb-4 flex items-start justify-between">
                                 <div>
                                     <h3 className="text-2xl font-black uppercase tracking-tight">{elder.name}</h3>
                                     <p className="mt-1 font-bold text-night/50">
                                         Age {elder.age} · {elder.language}
                                     </p>
                                 </div>
-                                <span className="inline-block border-2 border-night bg-accent px-2 py-1 text-xs font-black uppercase shadow-brutal-sm">
-                                    Active
-                                </span>
+                                {(() => {
+                                    const mood = getLatestMood(elder.elderId);
+                                    const convos = getConversationHistory(elder.elderId);
+                                    return (
+                                        <div className="text-right">
+                                            {mood && (
+                                                <span className={`inline-block border-2 border-night px-2 py-1 text-xs font-black uppercase shadow-brutal-sm ${mood.toLowerCase().includes('distress') || mood.toLowerCase().includes('anxious')
+                                                        ? 'bg-alert text-white' : mood.toLowerCase().includes('happy')
+                                                            ? 'bg-green-200' : 'bg-accent'
+                                                    }`}>
+                                                    {mood}
+                                                </span>
+                                            )}
+                                            <p className="mt-1 text-xs font-bold text-night/40">{convos.length} conversations</p>
+                                        </div>
+                                    );
+                                })()}
                             </div>
-
                             <div className="mt-auto grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => handleTalk(elder.elderId)}

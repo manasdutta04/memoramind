@@ -8,7 +8,7 @@ import { GlassCard } from '@/components/GlassCard';
 import { MicButton } from '@/components/MicButton';
 import { MoodBadge } from '@/components/MoodBadge';
 import { chatWithVoice } from '@/lib/api';
-import { loadApiKeys, loadProfile } from '@/lib/storage';
+import { loadApiKeys, loadProfile, saveConversation } from '@/lib/storage';
 import { useVoiceRecorder } from '@/lib/useVoiceRecorder';
 import type { ApiKeys, ChatMessage, VoiceChatResponse } from '@/lib/types';
 
@@ -149,6 +149,15 @@ export default function CompanionPage() {
     } else {
       setLlmNotice('');
     }
+
+    // Save conversation to localStorage for mood timeline & history
+    saveConversation(elderId, {
+      timestamp: new Date(now).toISOString(),
+      userText: userText,
+      aiText: payload.assistant_text,
+      mood: payload.mood ?? 'unknown',
+      topics: payload.topics ?? [],
+    });
 
     await playAudio(payload);
   };

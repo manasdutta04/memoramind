@@ -7,8 +7,9 @@ import { useEffect, useState } from 'react';
 
 import { GlassCard } from '@/components/GlassCard';
 import { MoodBadge } from '@/components/MoodBadge';
+import { MoodChart } from '@/components/MoodChart';
 import { getDashboard } from '@/lib/api';
-import { loadApiKeys, loadProfile } from '@/lib/storage';
+import { loadApiKeys, loadProfile, getConversationHistory } from '@/lib/storage';
 import type { ApiKeys, DashboardResponse } from '@/lib/types';
 
 export default function DashboardPage() {
@@ -125,6 +126,55 @@ export default function DashboardPage() {
               </GlassCard>
             </div>
           </div>
+
+          {/* Mood Timeline Chart */}
+          <MoodChart conversations={getConversationHistory(elderId)} />
+
+          {/* Daily Conversation Digest */}
+          <GlassCard className="bg-white">
+            <h2 className="border-b-2 border-night pb-3 text-2xl font-black uppercase tracking-tighter">Daily Digest</h2>
+            {(() => {
+              const convos = getConversationHistory(elderId);
+              const today = new Date().toDateString();
+              const todayConvos = convos.filter((c) => new Date(c.timestamp).toDateString() === today);
+              if (todayConvos.length === 0) {
+                return <p className="mt-4 font-bold text-night/50">No conversations today yet.</p>;
+              }
+              const moods = todayConvos.map((c) => c.mood);
+              const allTopics = [...new Set(todayConvos.flatMap((c) => c.topics))];
+              return (
+                <div className="mt-4">
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="border-2 border-night bg-green-50 p-4 shadow-brutal-sm">
+                      <p className="text-3xl font-black">{todayConvos.length}</p>
+                      <p className="text-sm font-bold uppercase text-night/60">Conversations</p>
+                    </div>
+                    <div className="border-2 border-night bg-blue-50 p-4 shadow-brutal-sm">
+                      <p className="text-3xl font-black">{allTopics.length}</p>
+                      <p className="text-sm font-bold uppercase text-night/60">Topics</p>
+                    </div>
+                    <div className="border-2 border-night bg-purple-50 p-4 shadow-brutal-sm">
+                      <p className="text-lg font-black">{moods[moods.length - 1] ?? '—'}</p>
+                      <p className="text-sm font-bold uppercase text-night/60">Latest Mood</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex flex-col gap-3">
+                    <h3 className="font-black uppercase">Recent Exchanges</h3>
+                    {todayConvos.slice(-5).reverse().map((c, i) => (
+                      <div key={i} className="border-2 border-night/30 p-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-night/50">
+                          <span>{new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <MoodBadge mood={c.mood} />
+                        </div>
+                        <p className="mt-1 text-sm"><strong>Elder:</strong> {c.userText}</p>
+                        <p className="mt-1 text-sm text-night/70"><strong>MemoraMind:</strong> {c.aiText.slice(0, 120)}{c.aiText.length > 120 ? '...' : ''}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </GlassCard>
 
           {/* Distress Alerts */}
           <GlassCard className="bg-white">
