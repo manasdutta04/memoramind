@@ -43,6 +43,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </SignedOut>
 
                 <SignedIn>
+                  <Link className="border-2 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm" href="/settings">
+                    Voice Settings
+                  </Link>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
               </div>
