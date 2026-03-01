@@ -159,61 +159,61 @@ export default function CompanionPage() {
     <section className="mx-auto w-full max-w-5xl px-5 py-8">
       <ApiKeyBanner keys={keys} />
 
-      <header className="mb-6 flex items-center justify-between gap-3">
+      <header className="mb-8 flex items-center justify-between gap-4 border-b-4 border-night pb-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-accent">Companion Mode</p>
-          <h1 className="text-3xl font-bold">Hello, {elderName}</h1>
+          <p className="mb-2 inline-block bg-night px-2 py-1 text-xs font-bold uppercase tracking-widest text-white">Companion Mode</p>
+          <h1 className="text-4xl font-black tracking-tight">Hello, {elderName}</h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link href={`/dashboard/${elderId}`} className="rounded-xl border border-accent/50 px-4 py-2 text-sm text-accent">
-            Family Dashboard
+        <div className="flex items-center gap-4">
+          <Link href={`/dashboard/${elderId}`} className="border-4 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm">
+            Dashboard
           </Link>
           <button
             onClick={() => router.push('/settings')}
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold"
+            className="border-4 border-night bg-primary px-4 py-2 text-sm font-bold uppercase text-white shadow-brutal-sm transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
           >
             Settings
           </button>
         </div>
       </header>
 
-      <GlassCard className="flex min-h-[72vh] flex-col items-center justify-center p-8 text-center">
-        <p className="mb-6 text-lg text-slate-200">Press once to talk, press again to send.</p>
+      <GlassCard className="flex min-h-[72vh] flex-col items-center justify-center p-8 text-center bg-white">
+        <p className="mb-10 text-xl font-bold uppercase tracking-wide">Press once to talk, press again to send.</p>
 
         <MicButton state={micState} onClick={handleMic} disabled={!hasMistralKey} />
 
-        <div className="mt-10 w-full max-w-3xl rounded-3xl border border-accent/20 bg-black/25 px-6 py-5">
-          <p className="text-[22px] leading-relaxed">{subtitle}</p>
-          {transcript && <p className="mt-4 text-lg text-slate-300">You said: {transcript}</p>}
+        <div className="mt-14 w-full max-w-3xl border-4 border-night bg-yellow-50 px-8 py-8 shadow-brutal">
+          <p className="text-3xl font-bold leading-tight tracking-tight">{subtitle}</p>
+          {transcript && <p className="mt-6 border-t-2 border-night/20 pt-4 text-xl font-medium text-night/80">You said: {transcript}</p>}
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <MoodBadge mood={mood} />
           {topics.slice(0, 4).map((topic) => (
-            <span key={topic} className="rounded-full border border-accent/30 px-3 py-1 text-sm">
+            <span key={topic} className="border-2 border-night bg-accent px-3 py-1 text-sm font-bold uppercase shadow-brutal-sm">
               {topic}
             </span>
           ))}
         </div>
 
-        <div className="mt-8 w-full max-w-3xl rounded-2xl border border-accent/20 bg-black/25 p-4">
-          <p className="mb-2 text-xs uppercase tracking-wider text-slate-400">Backup text mode</p>
-          {llmNotice && <p className="mb-2 text-xs text-amber-300">{llmNotice}</p>}
-          <div className="flex flex-col gap-3 md:flex-row">
+        <div className="mt-12 w-full max-w-3xl border-4 border-night bg-white p-6 shadow-brutal-sm">
+          <p className="mb-4 text-sm font-black uppercase tracking-widest text-night/70">Backup text mode</p>
+          {llmNotice && <p className="mb-4 text-sm font-bold uppercase text-alert">{llmNotice}</p>}
+          <div className="flex flex-col gap-4 md:flex-row">
             <input
-              className="flex-1 rounded-xl border border-accent/30 bg-black/30 px-3 py-3"
+              className="flex-1 border-4 border-night px-4 py-3 font-bold placeholder:text-night/40 focus:outline-none focus:ring-4 focus:ring-accent"
               value={textInput}
               onChange={(event) => setTextInput(event.target.value)}
               placeholder="Type message when mic is unavailable"
             />
-            <button onClick={handleText} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold">
+            <button onClick={handleText} className="border-4 border-night bg-primary px-8 py-3 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
               Send
             </button>
           </div>
         </div>
 
-        {(error || recorder.error) && <p className="mt-5 text-sm text-rose-300">{error || recorder.error}</p>}
+        {(error || recorder.error) && <p className="mt-8 border-4 border-night bg-alert p-4 font-bold text-white shadow-brutal">{error || recorder.error}</p>}
       </GlassCard>
     </section>
   );

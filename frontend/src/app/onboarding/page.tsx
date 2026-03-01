@@ -78,31 +78,31 @@ export default function OnboardingPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-4xl px-5 py-10">
-      <GlassCard className="p-8">
-        <div className="mb-7 flex items-center justify-between gap-3">
+    <section className="mx-auto w-full max-w-4xl px-5 py-12">
+      <GlassCard className="bg-white p-8 md:p-12">
+        <div className="mb-10 flex flex-col justify-between border-b-4 border-night pb-6 md:flex-row md:items-center">
           <div>
-            <h1 className="text-3xl font-bold">Family Setup</h1>
-            <p className="mt-2 text-slate-300">Build a memory profile once, then start companion mode.</p>
+            <h1 className="text-4xl font-black uppercase tracking-tight">Family Setup</h1>
+            <p className="mt-2 text-lg font-bold">Build a memory profile once, then start companion mode.</p>
           </div>
-          <p className="rounded-xl border border-accent/40 px-3 py-1 text-sm text-accent">Step {progress}</p>
+          <p className="mt-4 inline-block border-2 border-night bg-accent px-4 py-2 font-black uppercase shadow-brutal-sm md:mt-0 md:self-start">Step {progress}</p>
         </div>
 
         {step === 1 && (
-          <div className="grid gap-5 md:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm">
+          <div className="grid gap-6 md:grid-cols-2">
+            <label className="flex flex-col gap-3 font-bold uppercase tracking-tight">
               Elder name
               <input
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night placeholder:text-night/30 focus:outline-none focus:ring-4 focus:ring-accent"
                 value={elderName}
                 onChange={(event) => setElderName(event.target.value)}
                 placeholder="Ramesh"
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex flex-col gap-3 font-bold uppercase tracking-tight">
               Age
               <input
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night focus:outline-none focus:ring-4 focus:ring-accent"
                 type="number"
                 min={40}
                 max={120}
@@ -111,10 +111,10 @@ export default function OnboardingPage() {
               />
             </label>
 
-            <label className="md:col-span-2 flex flex-col gap-2 text-sm">
+            <label className="flex flex-col gap-3 font-bold uppercase tracking-tight md:col-span-2">
               Preferred language
               <input
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night placeholder:text-night/30 focus:outline-none focus:ring-4 focus:ring-accent"
                 value={language}
                 onChange={(event) => setLanguage(event.target.value)}
                 placeholder="English"
@@ -125,15 +125,15 @@ export default function OnboardingPage() {
 
         {step === 2 && (
           <div>
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
               <input
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night placeholder:text-night/30 focus:outline-none focus:ring-4 focus:ring-accent"
                 placeholder="Family member name"
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
               />
               <input
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night placeholder:text-night/30 focus:outline-none focus:ring-4 focus:ring-accent"
                 placeholder="Relationship"
                 value={memberRelation}
                 onChange={(event) => setMemberRelation(event.target.value)}
@@ -141,18 +141,18 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={addFamilyMember}
-                className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-night"
+                className="border-4 border-night bg-accent px-8 py-3 font-black uppercase text-night shadow-brutal transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
               >
                 Add
               </button>
             </div>
 
-            <div className="mt-4 grid gap-2">
+            <div className="mt-8 grid gap-3">
               {familyMembers.length === 0 ? (
-                <p className="text-sm text-slate-400">No members added yet.</p>
+                <p className="font-bold text-gray-500">No members added yet.</p>
               ) : (
                 familyMembers.map((member, index) => (
-                  <div key={`${member.name}-${index}`} className="rounded-xl border border-accent/20 bg-black/20 px-3 py-2 text-sm">
+                  <div key={`${member.name}-${index}`} className="border-2 border-night bg-gray-100 px-4 py-3 font-bold shadow-brutal-sm">
                     {member.name} - {member.relationship}
                   </div>
                 ))
@@ -162,30 +162,30 @@ export default function OnboardingPage() {
         )}
 
         {step === 3 && (
-          <div className="grid gap-5">
-            <label className="flex flex-col gap-2 text-sm">
+          <div className="grid gap-8">
+            <label className="flex flex-col gap-3 font-bold uppercase tracking-tight">
               Key memories (one per line)
               <textarea
                 rows={4}
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night focus:outline-none focus:ring-4 focus:ring-accent"
                 value={memories}
                 onChange={(event) => setMemories(event.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex flex-col gap-3 font-bold uppercase tracking-tight">
               Daily routine (one per line)
               <textarea
                 rows={4}
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night focus:outline-none focus:ring-4 focus:ring-accent"
                 value={routine}
                 onChange={(event) => setRoutine(event.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex flex-col gap-3 font-bold uppercase tracking-tight">
               Favorite topics (one per line)
               <textarea
                 rows={3}
-                className="rounded-xl border border-accent/30 bg-black/30 px-3 py-3 text-white"
+                className="border-4 border-night bg-white px-4 py-3 font-bold text-night focus:outline-none focus:ring-4 focus:ring-accent"
                 value={topics}
                 onChange={(event) => setTopics(event.target.value)}
               />
@@ -193,14 +193,14 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {error && <p className="mt-5 text-sm text-rose-300">{error}</p>}
+        {error && <p className="mt-8 border-4 border-night bg-alert p-4 font-bold text-white shadow-brutal">{error}</p>}
 
-        <div className="mt-8 flex items-center justify-between gap-3">
+        <div className="mt-12 flex items-center justify-between gap-4 border-t-4 border-night pt-8">
           <button
             type="button"
             disabled={step === 1 || loading}
             onClick={() => setStep((prev) => Math.max(1, prev - 1))}
-            className="rounded-xl border border-accent/40 px-4 py-2 text-sm text-accent disabled:opacity-50"
+            className="border-4 border-night bg-white px-8 py-3 font-black uppercase text-night shadow-brutal transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:opacity-50"
           >
             Back
           </button>
@@ -210,7 +210,7 @@ export default function OnboardingPage() {
               type="button"
               onClick={() => setStep((prev) => Math.min(TOTAL_STEPS, prev + 1))}
               disabled={loading || (step === 1 && !elderName.trim())}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold disabled:opacity-60"
+              className="border-4 border-night bg-primary px-8 py-3 font-black uppercase text-white shadow-brutal transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:opacity-60"
             >
               Continue
             </button>
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
               type="button"
               disabled={loading || !elderName.trim()}
               onClick={submit}
-              className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-night disabled:opacity-60"
+              className="border-4 border-night bg-accent px-8 py-3 font-black uppercase text-night shadow-brutal transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:opacity-60"
             >
               {loading ? 'Saving...' : 'Finish Setup'}
             </button>

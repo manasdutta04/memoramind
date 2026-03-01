@@ -10,9 +10,10 @@ export function ApiKeyBanner({ keys }: { keys: ApiKeys }) {
   }
 
   return (
-    <div className="glass mb-5 rounded-2xl border border-amber-300/30 px-4 py-3 text-sm text-amber-100">
+    <div className="mb-8 border-4 border-night bg-accent p-4 text-sm font-bold text-night shadow-brutal">
+      <span className="mr-2 uppercase tracking-widest">Notice:</span>
       Add your own Mistral API key in{' '}
-      <Link className="font-semibold underline" href="/settings">
+      <Link className="underline decoration-2 underline-offset-4 hover:bg-night hover:text-white" href="/settings">
         Settings
       </Link>{' '}
       to enable cloud responses.

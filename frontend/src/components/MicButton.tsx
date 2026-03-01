@@ -17,14 +17,16 @@ export function MicButton({ state, disabled, onClick }: Props) {
         disabled={disabled || busy}
         onClick={onClick}
         className={[
-          'relative flex h-52 w-52 items-center justify-center rounded-full border text-lg font-semibold tracking-wide',
-          'transition focus:outline-none focus:ring-4 focus:ring-accent/50',
-          live ? 'mic-live border-rose-300 bg-rose-500 text-white' : 'mic-breath border-accent/50 bg-primary text-white',
-          busy ? 'opacity-70' : 'opacity-100'
+          'relative flex h-48 w-48 items-center justify-center border-4 border-night text-xl font-black uppercase tracking-widest',
+          'transition-all duration-150 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none hover:-translate-y-1 hover:shadow-[8px_8px_0_0_#111]',
+          live
+            ? 'mic-live bg-alert text-white shadow-[6px_6px_0_0_#111]'
+            : 'mic-breath bg-primary text-white shadow-[6px_6px_0_0_#111]',
+          busy ? 'opacity-70 bg-gray-200 text-night' : 'opacity-100'
         ].join(' ')}
       >
         {busy ? (
-          <span className="h-14 w-14 animate-spin rounded-full border-4 border-accent/40 border-t-accent" />
+          <span className="block h-12 w-12 animate-spin border-4 border-night border-t-transparent" />
         ) : live ? (
           'Stop'
         ) : (
@@ -33,7 +35,7 @@ export function MicButton({ state, disabled, onClick }: Props) {
       </button>
 
       {live && (
-        <div className="wave flex gap-1" aria-hidden>
+        <div className="wave flex gap-2" aria-hidden>
           <span />
           <span />
           <span />

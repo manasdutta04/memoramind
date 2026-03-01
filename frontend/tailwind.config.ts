@@ -5,12 +5,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        night: '#0a0f1e',
-        primary: '#7c3aed',
-        accent: '#c4b5fd'
+        base: '#fcfcfc',
+        night: '#111111',
+        primary: '#3b82f6', // Bright, stark blue
+        accent: '#eab308',  // Bold yellow
+        alert: '#ef4444'    // Sharp red
       },
       boxShadow: {
-        glow: '0 0 0 1px rgba(196,181,253,0.25), 0 24px 64px rgba(124,58,237,0.35)'
+        brutal: '4px 4px 0px 0px rgba(17,17,17,1)',
+        'brutal-sm': '2px 2px 0px 0px rgba(17,17,17,1)',
       }
     }
   },

@@ -22,28 +22,28 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <ClerkProvider>
       <html lang="en">
         <body>
-          <header className="sticky top-0 z-30 border-b border-accent/20 bg-night/80 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b-4 border-night bg-base">
             <nav className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-5">
-              <Link className="text-xl font-extrabold tracking-tight" href="/">
-                Memora<span className="text-accent">Mind</span>
+              <Link className="text-2xl font-black uppercase tracking-tighter" href="/">
+                Memora<span className="text-primary">Mind</span>
               </Link>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <SignedOut>
                   <SignInButton mode="modal">
-                    <button className="rounded-xl border border-accent/50 px-3 py-2 text-sm font-semibold text-accent">
+                    <button className="border-2 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm">
                       Sign In
                     </button>
                   </SignInButton>
                   <SignUpButton mode="modal">
-                    <button className="rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-night">
+                    <button className="border-2 border-night bg-primary px-4 py-2 text-sm font-bold uppercase text-white shadow-brutal-sm transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none">
                       Sign Up
                     </button>
                   </SignUpButton>
                 </SignedOut>
 
                 <SignedIn>
-                  <Link className="rounded-xl border border-accent/40 px-3 py-2 text-sm font-semibold text-accent" href="/settings">
+                  <Link className="border-2 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm" href="/settings">
                     API Keys
                   </Link>
                   <UserButton afterSignOutUrl="/" />
