@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import base64
+import logging
 
 import httpx
 
 from app.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 class TTSService:
@@ -32,13 +35,18 @@ class TTSService:
         payload = {
             "text": text,
             "model_id": self.settings.elevenlabs_model_id,
-            "voice_settings": {"stability": 0.45, "similarity_boost": 0.75},
+            "voice_settings": {"stability": 0.70, "similarity_boost": 0.85},
         }
 
         try:
             async with httpx.AsyncClient(timeout=40.0) as client:
                 response = await client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
-            return base64.b64encode(response.content).decode("utf-8"), "audio/mpeg", False
-        except Exception:
+            audio_data = response.content
+            if len(audio_data) < 100:
+                logger.warning("ElevenLabs returned very small audio (%d bytes)", len(audio_data))
+                return None, None, True
+            return base64.b64encode(audio_data).decode("utf-8"), "audio/mpeg", False
+        except Exception as exc:
+            logger.warning("ElevenLabs TTS failed: %s", exc)
             return None, None, True

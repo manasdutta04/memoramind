@@ -78,17 +78,26 @@ export default function CompanionPage() {
   };
 
   const playAudio = async (payload: VoiceChatResponse) => {
+    console.log('[TTS Debug]', {
+      tts_fallback: payload.tts_fallback,
+      has_audio: !!payload.audio_base64,
+      audio_length: payload.audio_base64?.length ?? 0,
+      mime: payload.audio_mime_type,
+    });
+
     if (payload.audio_base64 && payload.audio_mime_type) {
       try {
         const source = `data:${payload.audio_mime_type};base64,${payload.audio_base64}`;
         const player = new Audio(source);
         await player.play();
         return;
-      } catch {
+      } catch (err) {
+        console.warn('[TTS Debug] ElevenLabs audio playback failed, using fallback:', err);
         speakFallback(payload.assistant_text);
         return;
       }
     }
+    console.warn('[TTS Debug] No ElevenLabs audio — using browser fallback');
     speakFallback(payload.assistant_text);
   };
 

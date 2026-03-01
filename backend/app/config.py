@@ -65,7 +65,7 @@ class Settings:
             mistral_ca_bundle=os.getenv("MISTRAL_CA_BUNDLE", ""),
             elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY", ""),
             elevenlabs_voice_id=os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"),
-            elevenlabs_model_id=os.getenv("ELEVENLABS_MODEL_ID", "eleven_turbo_v2_5"),
+            elevenlabs_model_id=os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2"),
             whisper_model_size=os.getenv("WHISPER_MODEL_SIZE", "base"),
             whisper_download_root=os.getenv(
                 "WHISPER_DOWNLOAD_ROOT", str(ROOT_DIR / ".cache" / "whisper")
