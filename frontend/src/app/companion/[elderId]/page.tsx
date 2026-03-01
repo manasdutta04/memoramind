@@ -13,9 +13,7 @@ import { loadApiKeys, loadProfile } from '@/lib/storage';
 import { useVoiceRecorder } from '@/lib/useVoiceRecorder';
 import type { ApiKeys, ChatMessage, VoiceChatResponse } from '@/lib/types';
 
-function asString(value: unknown, fallback: string): string {
-  return typeof value === 'string' && value.trim() ? value : fallback;
-}
+
 
 function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -33,20 +31,29 @@ export default function CompanionPage() {
   const [llmNotice, setLlmNotice] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [elderName, setElderName] = useState('Dear Friend');
+  const [language, setLanguage] = useState('English');
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recorder = useVoiceRecorder();
-  const profile = loadProfile(elderId);
-  const elderName = asString(profile?.elder_name, 'Dear Friend');
-  const language = asString(profile?.language, 'English');
 
   useEffect(() => {
     if (!elderId) {
       router.push('/');
       return;
     }
-    setKeys(loadApiKeys());
+    const currentKeys = loadApiKeys();
+    setKeys(currentKeys);
+
+    const profile = loadProfile(elderId);
+    if (typeof profile?.elder_name === 'string' && profile.elder_name.trim()) {
+      setElderName(profile.elder_name.trim());
+    }
+    if (typeof profile?.language === 'string' && profile.language.trim()) {
+      setLanguage(profile.language.trim());
+    }
   }, [elderId, router]);
+
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -248,8 +255,8 @@ export default function CompanionPage() {
               <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
                   className={`max-w-[90%] border-2 px-4 py-3 text-sm font-medium shadow-brutal-sm ${msg.role === 'user'
-                      ? 'border-night bg-accent text-night'
-                      : 'border-night bg-white text-night'
+                    ? 'border-night bg-accent text-night'
+                    : 'border-night bg-white text-night'
                     }`}
                 >
                   {msg.text}
