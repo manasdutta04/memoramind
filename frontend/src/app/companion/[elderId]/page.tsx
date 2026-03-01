@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { ApiKeyBanner } from '@/components/ApiKeyBanner';
 import { GlassCard } from '@/components/GlassCard';
 import { MicButton } from '@/components/MicButton';
 import { MoodBadge } from '@/components/MoodBadge';
@@ -66,7 +65,7 @@ export default function CompanionPage() {
     return recorder.state;
   }, [loading, recorder.state]);
 
-  const hasMistralKey = keys.mistralKey.trim().length > 0;
+
 
   const speakFallback = (text: string) => {
     if (!window.speechSynthesis) return;
@@ -155,10 +154,7 @@ export default function CompanionPage() {
   };
 
   const sendAudio = async (audioBlob: Blob) => {
-    if (!hasMistralKey) {
-      setError('Add your Mistral key in Settings to continue.');
-      return;
-    }
+
     try {
       setLoading(true);
       setError('');
@@ -189,10 +185,7 @@ export default function CompanionPage() {
   const handleText = async () => {
     const text = textInput.trim();
     if (!text) return;
-    if (!hasMistralKey) {
-      setError('Add your Mistral key in Settings to continue.');
-      return;
-    }
+
     try {
       setLoading(true);
       setError('');
@@ -210,24 +203,14 @@ export default function CompanionPage() {
 
   return (
     <section className="mx-auto w-full max-w-5xl px-5 py-8">
-      <ApiKeyBanner keys={keys} />
-
       <header className="mb-8 flex items-center justify-between gap-4 border-b-4 border-night pb-6">
         <div>
           <p className="mb-2 inline-block bg-night px-2 py-1 text-xs font-bold uppercase tracking-widest text-white">Companion Mode</p>
           <h1 className="text-4xl font-black tracking-tight">Hello, {elderName}</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href={`/dashboard/${elderId}`} className="border-4 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm">
-            Dashboard
-          </Link>
-          <button
-            onClick={() => router.push('/settings')}
-            className="border-4 border-night bg-primary px-4 py-2 text-sm font-bold uppercase text-white shadow-brutal-sm transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-          >
-            Settings
-          </button>
-        </div>
+        <Link href={`/dashboard/${elderId}`} className="border-4 border-night bg-primary px-4 py-2 text-sm font-bold uppercase text-white shadow-brutal-sm transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none">
+          Dashboard
+        </Link>
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -236,7 +219,7 @@ export default function CompanionPage() {
           <p className="mb-8 text-base font-bold uppercase tracking-wide text-night/60">
             Press once to talk, press again to send.
           </p>
-          <MicButton state={micState} onClick={handleMic} disabled={!hasMistralKey} />
+          <MicButton state={micState} onClick={handleMic} disabled={false} />
 
           {lastAssistant ? (
             <div className="mt-10 w-full border-4 border-night bg-yellow-50 px-6 py-6 shadow-brutal">
