@@ -6,7 +6,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'MemoraMind',
-  description: 'Every memory matters.'
+  description: 'Every memory matters.',
+  icons: {
+    icon: '/favicon.ico?v=2',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
