@@ -23,6 +23,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link className="border-2 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm" href="/family">
                 My Family
               </Link>
+              <a href="https://github.com/manasdutta04/memoramind" target="_blank" rel="noopener noreferrer" className="border-2 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm">
+                GitHub
+              </a>
               <Link className="border-2 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm" href="/settings">
                 Voice Settings
               </Link>

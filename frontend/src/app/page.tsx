@@ -140,17 +140,32 @@ export default function LandingPage() {
       </section>
 
       {/* Footer CTA */}
-      <footer className="border-t-4 border-night bg-base py-16 text-center">
-        <h2 className="text-4xl font-black uppercase tracking-tight">Ready to bridge the memory gap?</h2>
-        <div className="mt-8 flex justify-center gap-6">
-          <button
-            onClick={() => router.push('/family')}
-            className="border-4 border-night bg-accent px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
-          >
-            Start Onboarding
-          </button>
+      <footer className="border-t-4 border-night bg-base py-24">
+        <div className="mx-auto w-full max-w-4xl px-5 text-center">
+          <h2 className="text-5xl font-black uppercase tracking-tighter md:text-6xl">Bridge the memory gap.</h2>
+          <p className="mt-6 text-xl font-medium text-night/70">
+            A beautiful, respectful way to help older adults feel known and heard, every single day.
+          </p>
+          <div className="mt-12 flex justify-center gap-6">
+            <button
+              onClick={() => router.push('/family')}
+              className="border-4 border-night bg-accent px-10 py-5 text-xl font-black uppercase text-night shadow-[8px_8px_0_0_#111] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            >
+              Start Care Hub
+            </button>
+          </div>
+          <div className="mt-20 flex flex-col items-center justify-between gap-6 border-t-4 border-night pt-8 md:flex-row">
+            <p className="text-sm font-bold uppercase text-night/60">
+              Built by <a href="https://github.com/manasdutta04" target="_blank" rel="noreferrer" className="text-night underline decoration-2 underline-offset-4 hover:bg-primary hover:text-white">Manas Dutta</a>
+            </p>
+            <p className="bg-night px-3 py-1 text-sm font-black uppercase tracking-widest text-white shadow-brutal-sm">
+              Mistral Hackathon 2026
+            </p>
+            <a href="https://github.com/manasdutta04/memoramind" target="_blank" rel="noreferrer" className="text-sm font-bold uppercase text-night/60 hover:text-primary">
+              Source Code
+            </a>
+          </div>
         </div>
-        <p className="mt-16 text-sm font-bold uppercase text-night/50">Built for the Mistral 2026 Hackathon by Manas Dutta</p>
       </footer>
     </div>
   );
