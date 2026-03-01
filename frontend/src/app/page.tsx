@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -45,21 +45,12 @@ export default function LandingPage() {
             </p>
 
             <div className="mt-12 flex flex-wrap gap-6">
-              <SignedIn>
-                <button
-                  onClick={() => router.push('/onboarding')}
-                  className="border-4 border-night bg-primary px-8 py-4 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
-                >
-                  Set Up for a Loved One
-                </button>
-              </SignedIn>
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="border-4 border-night bg-primary px-8 py-4 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
-                    Set Up for a Loved One
-                  </button>
-                </SignInButton>
-              </SignedOut>
+              <button
+                onClick={() => router.push('/onboarding')}
+                className="border-4 border-night bg-primary px-8 py-4 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+              >
+                Set Up for a Loved One
+              </button>
 
               <button
                 onClick={handleDemo}
@@ -152,21 +143,12 @@ export default function LandingPage() {
       <footer className="border-t-4 border-night bg-base py-16 text-center">
         <h2 className="text-4xl font-black uppercase tracking-tight">Ready to bridge the memory gap?</h2>
         <div className="mt-8 flex justify-center gap-6">
-          <SignedIn>
-            <button
-              onClick={() => router.push('/onboarding')}
-              className="border-4 border-night bg-accent px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
-            >
-              Start Onboarding
-            </button>
-          </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="border-4 border-night bg-accent px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
-                Start Onboarding
-              </button>
-            </SignInButton>
-          </SignedOut>
+          <button
+            onClick={() => router.push('/onboarding')}
+            className="border-4 border-night bg-accent px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+          >
+            Start Onboarding
+          </button>
         </div>
         <p className="mt-16 text-sm font-bold uppercase text-night/50">Built for the Mistral 2026 Hackathon by Manas Dutta</p>
       </footer>
