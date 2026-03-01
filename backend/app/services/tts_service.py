@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 import base64
+import io
 import logging
 
-import httpx
+import edge_tts
 
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+# Warm, natural female voices for elderly companion
+VOICE_MAP = {
+    "en": "en-US-JennyNeural",       # Warm, friendly US English
+    "hi": "hi-IN-SwaraNeural",       # Hindi female
+}
+FALLBACK_VOICE = "en-US-JennyNeural"
 
 
 class TTSService:
@@ -21,32 +29,29 @@ class TTSService:
     ) -> tuple[str | None, str | None, bool]:
         """
         Returns (audio_base64, mime_type, tts_fallback).
+        Uses Microsoft Edge TTS — free, no API key, works everywhere.
         """
-        elevenlabs_api_key = (api_key_override or "").strip() or self.settings.elevenlabs_api_key
-        if not elevenlabs_api_key:
+        if not text or not text.strip():
             return None, None, True
 
-        url = f"https://api.elevenlabs.io/v1/text-to-speech/{self.settings.elevenlabs_voice_id}"
-        headers = {
-            "xi-api-key": elevenlabs_api_key,
-            "Content-Type": "application/json",
-            "Accept": "audio/mpeg",
-        }
-        payload = {
-            "text": text,
-            "model_id": self.settings.elevenlabs_model_id,
-            "voice_settings": {"stability": 0.70, "similarity_boost": 0.85},
-        }
+        # Pick voice based on configured language or default to English
+        voice = VOICE_MAP.get("en", FALLBACK_VOICE)
 
         try:
-            async with httpx.AsyncClient(timeout=40.0) as client:
-                response = await client.post(url, headers=headers, json=payload)
-                response.raise_for_status()
-            audio_data = response.content
+            communicate = edge_tts.Communicate(text, voice, rate="-10%", pitch="+0Hz")
+            audio_buffer = io.BytesIO()
+
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_buffer.write(chunk["data"])
+
+            audio_data = audio_buffer.getvalue()
             if len(audio_data) < 100:
-                logger.warning("ElevenLabs returned very small audio (%d bytes)", len(audio_data))
+                logger.warning("Edge TTS returned very small audio (%d bytes)", len(audio_data))
                 return None, None, True
+
             return base64.b64encode(audio_data).decode("utf-8"), "audio/mpeg", False
+
         except Exception as exc:
-            logger.warning("ElevenLabs TTS failed: %s", exc)
+            logger.warning("Edge TTS failed: %s", exc)
             return None, None, True

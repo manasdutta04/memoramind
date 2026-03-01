@@ -33,6 +33,36 @@ from app.services.voice_service import VoiceService
 settings = get_settings()
 app = FastAPI(title=settings.app_name, version="1.0.0")
 
+# Startup diagnostics — test ElevenLabs key
+import os as _os, urllib.request, urllib.error, json as _json
+
+_el_key = settings.elevenlabs_api_key
+_raw_el = _os.getenv("ELEVENLABS_API_KEY", "")
+print(f"[STARTUP] ELEVENLABS raw_len={len(_raw_el)} cleaned_len={len(_el_key)}")
+
+if _el_key:
+    try:
+        _test_url = f"https://api.elevenlabs.io/v1/text-to-speech/{settings.elevenlabs_voice_id}"
+        _test_data = _json.dumps({"text": "test", "model_id": settings.elevenlabs_model_id}).encode()
+        _test_req = urllib.request.Request(
+            _test_url,
+            data=_test_data,
+            headers={"xi-api-key": _el_key, "Content-Type": "application/json", "Accept": "audio/mpeg"},
+        )
+        _test_resp = urllib.request.urlopen(_test_req)
+        print(f"[STARTUP] ElevenLabs TEST: SUCCESS status={_test_resp.status} size={len(_test_resp.read())} bytes")
+    except urllib.error.HTTPError as _e:
+        _body = _e.read().decode("utf-8", errors="replace")
+        print(f"[STARTUP] ElevenLabs TEST: FAILED status={_e.code} body={_body}")
+    except Exception as _e:
+        print(f"[STARTUP] ElevenLabs TEST: ERROR {_e}")
+else:
+    print("[STARTUP] ELEVENLABS_API_KEY is EMPTY — skipping test")
+
+_mi_key = settings.mistral_api_key
+print(f"[STARTUP] MISTRAL_API_KEY set: {bool(_mi_key)}, length: {len(_mi_key)}") if _mi_key else print("[STARTUP] MISTRAL_API_KEY is EMPTY")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
