@@ -72,10 +72,38 @@ export default function CompanionPage() {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language.toLowerCase().includes('hindi') ? 'hi-IN' : 'en-US';
-    utterance.rate = 0.93;
+
+    const isHindi = language.toLowerCase().includes('hindi');
+    utterance.lang = isHindi ? 'hi-IN' : 'en-US';
+
+    // Pick the best available voice — prefer warm female voices
+    const voices = window.speechSynthesis.getVoices();
+    const preferredNames = isHindi
+      ? ['Lekha', 'Google हिन्दी', 'Neerja']
+      : ['Samantha', 'Karen', 'Google UK English Female', 'Moira', 'Tessa', 'Fiona', 'Victoria'];
+
+    let bestVoice = voices.find((v) =>
+      preferredNames.some((name) => v.name.includes(name))
+    );
+    if (!bestVoice) {
+      bestVoice = voices.find(
+        (v) => v.lang.startsWith(isHindi ? 'hi' : 'en') && v.name.toLowerCase().includes('female')
+      );
+    }
+    if (!bestVoice) {
+      bestVoice = voices.find((v) => v.lang.startsWith(isHindi ? 'hi' : 'en'));
+    }
+    if (bestVoice) utterance.voice = bestVoice;
+
+    utterance.rate = 0.88;
+    utterance.pitch = 1.05;
     window.speechSynthesis.speak(utterance);
   };
+
+  // Ensure voices are loaded (some browsers load them async)
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+  }
 
   const playAudio = async (payload: VoiceChatResponse) => {
     console.log('[TTS Debug]', {
