@@ -80,13 +80,33 @@ export default function OnboardingPage() {
   return (
     <section className="mx-auto w-full max-w-4xl px-5 py-12">
       <GlassCard className="bg-white p-8 md:p-12">
-        <div className="mb-10 flex flex-col justify-between border-b-4 border-night pb-6 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-4xl font-black uppercase tracking-tight">Family Setup</h1>
-            <p className="mt-2 text-lg font-bold">Build a memory profile once, then start companion mode.</p>
+        <div className="mb-10 border-b-4 border-night pb-8">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-black uppercase tracking-tight">Family Setup</h1>
+              <p className="mt-2 text-lg font-bold text-night/70">Build a memory profile once, then start companion mode.</p>
+            </div>
+            <p className="inline-block border-2 border-night bg-accent px-4 py-2 font-black uppercase shadow-brutal-sm">
+              Step {progress}
+            </p>
           </div>
-          <p className="mt-4 inline-block border-2 border-night bg-accent px-4 py-2 font-black uppercase shadow-brutal-sm md:mt-0 md:self-start">Step {progress}</p>
+          {/* Visual Progress Bar */}
+          <div className="flex gap-2">
+            {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+              <div
+                key={i}
+                className={`h-3 flex-1 border-2 border-night transition-all ${i < step ? 'bg-primary shadow-brutal-sm' : 'bg-gray-100'
+                  }`}
+              />
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between text-xs font-bold uppercase text-night/50">
+            <span>Personal Info</span>
+            <span>Family Members</span>
+            <span>Memories &amp; Routine</span>
+          </div>
         </div>
+
 
         {step === 1 && (
           <div className="grid gap-6 md:grid-cols-2">

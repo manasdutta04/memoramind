@@ -7,6 +7,8 @@ from typing import Any
 from app.services.data_store import JsonDataStore
 from app.services.llm_service import LLMService
 
+_MAX_LOG_ENTRIES = 10  # Max conversation entries sent to the dashboard
+
 
 class DashboardService:
     def __init__(self, data_store: JsonDataStore, llm_service: LLMService) -> None:
@@ -31,7 +33,7 @@ class DashboardService:
             mood_counter = Counter(row.get("mood", "Calm") for row in today_rows)
             mood = mood_counter.most_common(1)[0][0]
 
-        topic_counter = Counter()
+        topic_counter: Counter[str] = Counter()
         distress_alerts: list[str] = []
         transcripts: list[str] = []
 
@@ -40,9 +42,15 @@ class DashboardService:
             transcripts.append(f"User: {row.get('user_text', '')}")
             transcripts.append(f"Assistant: {row.get('assistant_text', '')}")
             if row.get("distress"):
+                ts = row.get("timestamp", "")
+                # Format timestamp nicely — take only the time portion
+                try:
+                    dt = datetime.fromisoformat(ts)
+                    time_str = dt.strftime("%I:%M %p")
+                except Exception:
+                    time_str = ts
                 distress_alerts.append(
-                    "Distress detected at "
-                    f"{row.get('timestamp', '')}: consider checking in by call."
+                    f"Distress detected at {time_str}: consider a caring phone call."
                 )
 
         summary = await self.llm_service.summarize_sessions(
@@ -52,6 +60,24 @@ class DashboardService:
             api_key_override=mistral_api_key,
         )
 
+        # Build conversation log for the family dashboard (last N entries, most recent first)
+        conversation_log = []
+        for row in reversed(today_rows[-_MAX_LOG_ENTRIES:]):
+            ts = row.get("timestamp", "")
+            try:
+                dt = datetime.fromisoformat(ts)
+                time_str = dt.strftime("%I:%M %p")
+            except Exception:
+                time_str = ts
+            conversation_log.append({
+                "time": time_str,
+                "user_text": row.get("user_text", ""),
+                "assistant_text": row.get("assistant_text", ""),
+                "mood": row.get("mood", "Calm"),
+                "distress": row.get("distress", False),
+                "topics": row.get("topics", []),
+            })
+
         return {
             "elder_id": elder_id,
             "elder_name": profile.get("elder_name", ""),
@@ -60,4 +86,5 @@ class DashboardService:
             "topics": [topic for topic, _ in topic_counter.most_common(6)],
             "distress_alerts": distress_alerts,
             "sessions_today": len(today_rows),
+            "conversation_log": conversation_log,
         }

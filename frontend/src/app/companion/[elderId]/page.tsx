@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ApiKeyBanner } from '@/components/ApiKeyBanner';
 import { GlassCard } from '@/components/GlassCard';
@@ -11,10 +11,14 @@ import { MoodBadge } from '@/components/MoodBadge';
 import { chatWithVoice } from '@/lib/api';
 import { loadApiKeys, loadProfile } from '@/lib/storage';
 import { useVoiceRecorder } from '@/lib/useVoiceRecorder';
-import type { ApiKeys, VoiceChatResponse } from '@/lib/types';
+import type { ApiKeys, ChatMessage, VoiceChatResponse } from '@/lib/types';
 
 function asString(value: unknown, fallback: string): string {
   return typeof value === 'string' && value.trim() ? value : fallback;
+}
+
+function formatTime(ts: number): string {
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function CompanionPage() {
@@ -24,15 +28,13 @@ export default function CompanionPage() {
   const elderId = Array.isArray(elderIdParam) ? elderIdParam[0] : elderIdParam;
 
   const [keys, setKeys] = useState<ApiKeys>({ mistralKey: '', elevenLabsKey: '' });
-  const [subtitle, setSubtitle] = useState('Tap the button and speak. I am here with you.');
-  const [transcript, setTranscript] = useState('');
-  const [mood, setMood] = useState('Calm');
-  const [topics, setTopics] = useState<string[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [textInput, setTextInput] = useState('');
   const [llmNotice, setLlmNotice] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const recorder = useVoiceRecorder();
   const profile = loadProfile(elderId);
   const elderName = asString(profile?.elder_name, 'Dear Friend');
@@ -46,6 +48,10 @@ export default function CompanionPage() {
     setKeys(loadApiKeys());
   }, [elderId, router]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const micState = useMemo(() => {
     if (loading || recorder.state === 'processing') {
       return 'processing' as const;
@@ -56,9 +62,7 @@ export default function CompanionPage() {
   const hasMistralKey = keys.mistralKey.trim().length > 0;
 
   const speakFallback = (text: string) => {
-    if (!window.speechSynthesis) {
-      return;
-    }
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = language.toLowerCase().includes('hindi') ? 'hi-IN' : 'en-US';
@@ -81,11 +85,21 @@ export default function CompanionPage() {
     speakFallback(payload.assistant_text);
   };
 
-  const processReply = async (payload: VoiceChatResponse) => {
-    setSubtitle(payload.assistant_text);
-    setTranscript(payload.transcript);
-    setMood(payload.mood);
-    setTopics(payload.topics || []);
+  const processReply = async (userText: string, payload: VoiceChatResponse) => {
+    const now = Date.now();
+
+    setMessages((prev) => [
+      ...prev,
+      { role: 'user', text: userText, timestamp: now - 1 },
+      {
+        role: 'assistant',
+        text: payload.assistant_text,
+        mood: payload.mood,
+        distress: payload.distress,
+        topics: payload.topics,
+        timestamp: now,
+      },
+    ]);
 
     if (payload.llm_fallback) {
       setLlmNotice(payload.llm_error ? `Fallback mode: ${payload.llm_error}` : 'Fallback mode is active.');
@@ -101,12 +115,11 @@ export default function CompanionPage() {
       setError('Add your Mistral key in Settings to continue.');
       return;
     }
-
     try {
       setLoading(true);
       setError('');
       const payload = await chatWithVoice({ elderId, audioBlob, keys });
-      await processReply(payload);
+      await processReply(payload.transcript, payload);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -115,10 +128,7 @@ export default function CompanionPage() {
   };
 
   const handleMic = async () => {
-    if (loading) {
-      return;
-    }
-
+    if (loading) return;
     if (recorder.state === 'recording') {
       try {
         const blob = await recorder.stop();
@@ -128,25 +138,22 @@ export default function CompanionPage() {
       }
       return;
     }
-
     recorder.clearError();
     await recorder.start();
   };
 
   const handleText = async () => {
-    if (!textInput.trim()) {
-      return;
-    }
+    const text = textInput.trim();
+    if (!text) return;
     if (!hasMistralKey) {
       setError('Add your Mistral key in Settings to continue.');
       return;
     }
-
     try {
       setLoading(true);
       setError('');
-      const payload = await chatWithVoice({ elderId, userText: textInput, keys });
-      await processReply(payload);
+      const payload = await chatWithVoice({ elderId, userText: text, keys });
+      await processReply(text, payload);
       setTextInput('');
     } catch (err) {
       setError((err as Error).message);
@@ -154,6 +161,8 @@ export default function CompanionPage() {
       setLoading(false);
     }
   };
+
+  const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
 
   return (
     <section className="mx-auto w-full max-w-5xl px-5 py-8">
@@ -164,7 +173,6 @@ export default function CompanionPage() {
           <p className="mb-2 inline-block bg-night px-2 py-1 text-xs font-bold uppercase tracking-widest text-white">Companion Mode</p>
           <h1 className="text-4xl font-black tracking-tight">Hello, {elderName}</h1>
         </div>
-
         <div className="flex items-center gap-4">
           <Link href={`/dashboard/${elderId}`} className="border-4 border-night px-4 py-2 text-sm font-bold uppercase transition hover:bg-night hover:text-white hover:shadow-brutal-sm">
             Dashboard
@@ -178,43 +186,86 @@ export default function CompanionPage() {
         </div>
       </header>
 
-      <GlassCard className="flex min-h-[72vh] flex-col items-center justify-center p-8 text-center bg-white">
-        <p className="mb-10 text-xl font-bold uppercase tracking-wide">Press once to talk, press again to send.</p>
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+        {/* Left: Mic + last reply */}
+        <GlassCard className="flex flex-col items-center bg-white p-8 text-center">
+          <p className="mb-8 text-base font-bold uppercase tracking-wide text-night/60">
+            Press once to talk, press again to send.
+          </p>
+          <MicButton state={micState} onClick={handleMic} disabled={!hasMistralKey} />
 
-        <MicButton state={micState} onClick={handleMic} disabled={!hasMistralKey} />
+          {lastAssistant ? (
+            <div className="mt-10 w-full border-4 border-night bg-yellow-50 px-6 py-6 shadow-brutal">
+              <p className="text-2xl font-bold leading-snug">{lastAssistant.text}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <MoodBadge mood={lastAssistant.mood ?? 'Calm'} />
+                {(lastAssistant.topics ?? []).slice(0, 3).map((t) => (
+                  <span key={t} className="border-2 border-night bg-accent px-2 py-0.5 text-xs font-bold uppercase shadow-brutal-sm">{t}</span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-10 w-full border-4 border-night bg-base px-6 py-6 shadow-brutal">
+              <p className="text-2xl font-bold leading-snug text-night/60">Tap the button and speak. I am here with you.</p>
+            </div>
+          )}
 
-        <div className="mt-14 w-full max-w-3xl border-4 border-night bg-yellow-50 px-8 py-8 shadow-brutal">
-          <p className="text-3xl font-bold leading-tight tracking-tight">{subtitle}</p>
-          {transcript && <p className="mt-6 border-t-2 border-night/20 pt-4 text-xl font-medium text-night/80">You said: {transcript}</p>}
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <MoodBadge mood={mood} />
-          {topics.slice(0, 4).map((topic) => (
-            <span key={topic} className="border-2 border-night bg-accent px-3 py-1 text-sm font-bold uppercase shadow-brutal-sm">
-              {topic}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-12 w-full max-w-3xl border-4 border-night bg-white p-6 shadow-brutal-sm">
-          <p className="mb-4 text-sm font-black uppercase tracking-widest text-night/70">Backup text mode</p>
-          {llmNotice && <p className="mb-4 text-sm font-bold uppercase text-alert">{llmNotice}</p>}
-          <div className="flex flex-col gap-4 md:flex-row">
-            <input
-              className="flex-1 border-4 border-night px-4 py-3 font-bold placeholder:text-night/40 focus:outline-none focus:ring-4 focus:ring-accent"
-              value={textInput}
-              onChange={(event) => setTextInput(event.target.value)}
-              placeholder="Type message when mic is unavailable"
-            />
-            <button onClick={handleText} className="border-4 border-night bg-primary px-8 py-3 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
-              Send
-            </button>
+          {/* Text fallback */}
+          <div className="mt-8 w-full border-4 border-night bg-white p-5 shadow-brutal-sm">
+            <p className="mb-3 text-xs font-black uppercase tracking-widest text-night/50">Backup text mode</p>
+            {llmNotice && <p className="mb-3 text-sm font-bold uppercase text-alert">{llmNotice}</p>}
+            <div className="flex gap-3">
+              <input
+                className="flex-1 border-4 border-night px-4 py-3 font-bold placeholder:text-night/40 focus:outline-none focus:ring-4 focus:ring-accent"
+                value={textInput}
+                onChange={(event) => setTextInput(event.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleText()}
+                placeholder="Type a message…"
+              />
+              <button onClick={handleText} className="border-4 border-night bg-primary px-6 py-3 font-black uppercase text-white shadow-brutal transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none">
+                Send
+              </button>
+            </div>
           </div>
-        </div>
 
-        {(error || recorder.error) && <p className="mt-8 border-4 border-night bg-alert p-4 font-bold text-white shadow-brutal">{error || recorder.error}</p>}
-      </GlassCard>
+          {(error || recorder.error) && (
+            <p className="mt-6 w-full border-4 border-night bg-alert p-4 font-bold text-white shadow-brutal">
+              {error || recorder.error}
+            </p>
+          )}
+        </GlassCard>
+
+        {/* Right: Scrollable conversation history */}
+        <GlassCard className="flex flex-col bg-white p-0">
+          <div className="border-b-4 border-night px-5 py-4">
+            <h2 className="text-lg font-black uppercase tracking-tight">Session Log</h2>
+            <p className="text-xs font-bold uppercase text-night/50">{messages.length} turns today</p>
+          </div>
+
+          <div className="flex flex-1 flex-col-reverse gap-4 overflow-y-auto p-5" style={{ maxHeight: '600px' }}>
+            <div ref={chatEndRef} />
+            {[...messages].reverse().map((msg, i) => (
+              <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <div
+                  className={`max-w-[90%] border-2 px-4 py-3 text-sm font-medium shadow-brutal-sm ${msg.role === 'user'
+                      ? 'border-night bg-accent text-night'
+                      : 'border-night bg-white text-night'
+                    }`}
+                >
+                  {msg.text}
+                </div>
+                <p className="mt-1 px-1 text-xs font-bold text-night/40">
+                  {msg.role === 'user' ? elderName : 'MemoraMind'} · {formatTime(msg.timestamp)}
+                </p>
+              </div>
+            ))}
+
+            {messages.length === 0 && (
+              <p className="text-center text-sm font-bold text-night/40">No messages yet. Start talking!</p>
+            )}
+          </div>
+        </GlassCard>
+      </div>
     </section>
   );
 }

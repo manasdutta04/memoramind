@@ -10,6 +10,8 @@ from app.services.memory_service import MemoryService
 from app.services.stt_service import STTService
 from app.services.tts_service import TTSService
 
+_HISTORY_TURNS = 4  # Number of recent turns to include for multi-turn context
+
 
 class VoiceService:
     def __init__(
@@ -27,6 +29,23 @@ class VoiceService:
         self.stt_service = stt_service
         self.tts_service = tts_service
         self.insight_service = insight_service
+
+    def _build_history(self, elder_id: str) -> list[dict[str, str]]:
+        """Return the last N conversation turns as LLM message dicts."""
+        all_convs = self.data_store.get_conversations(elder_id)
+        today = datetime.now(timezone.utc).date().isoformat()
+        today_rows = [
+            row for row in all_convs
+            if str(row.get("timestamp", "")).startswith(today)
+        ]
+        recent = today_rows[-_HISTORY_TURNS:]
+        history: list[dict[str, str]] = []
+        for row in recent:
+            if row.get("user_text"):
+                history.append({"role": "user", "content": row["user_text"]})
+            if row.get("assistant_text"):
+                history.append({"role": "assistant", "content": row["assistant_text"]})
+        return history
 
     async def run_chat(
         self,
@@ -52,11 +71,17 @@ class VoiceService:
             raise ValueError("No audio or text input was provided.")
 
         memories = self.memory_service.retrieve_memories(elder_id=elder_id, query=transcript, limit=6)
+        history = self._build_history(elder_id)
+
         assistant_text, llm_fallback, llm_error = await self.llm_service.generate_companion_reply(
             language=profile.get("language", "English"),
             memories=memories,
             user_message=transcript,
             elder_name=profile.get("elder_name", "Friend"),
+            age=profile.get("age"),
+            family_members=profile.get("family_members"),
+            daily_routine=profile.get("daily_routine"),
+            history=history,
             api_key_override=mistral_api_key,
         )
 

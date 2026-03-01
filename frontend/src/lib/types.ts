@@ -37,6 +37,15 @@ export type VoiceChatResponse = {
   audio_mime_type: string | null;
 };
 
+export type ConversationLogEntry = {
+  time: string;
+  user_text: string;
+  assistant_text: string;
+  mood: string;
+  distress: boolean;
+  topics: string[];
+};
+
 export type DashboardResponse = {
   elder_id: string;
   elder_name: string;
@@ -45,9 +54,19 @@ export type DashboardResponse = {
   topics: string[];
   distress_alerts: string[];
   sessions_today: number;
+  conversation_log: ConversationLogEntry[];
 };
 
 export type ApiKeys = {
   mistralKey: string;
   elevenLabsKey: string;
+};
+
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  text: string;
+  mood?: string;
+  distress?: boolean;
+  topics?: string[];
+  timestamp: number;
 };
