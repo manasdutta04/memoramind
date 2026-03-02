@@ -44,22 +44,26 @@ export default function LandingPage() {
               life memories once, then stay informed with a live care dashboard.
             </p>
 
-            <div className="mt-12 flex flex-wrap gap-6">
-              <button
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-12 flex flex-wrap gap-6">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => router.push('/family')}
-                className="border-4 border-night bg-primary px-8 py-4 text-lg font-black uppercase text-white shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+                className="border-4 border-night bg-primary px-8 py-4 text-lg font-black uppercase text-white shadow-brutal transition-shadow hover:shadow-none"
               >
                 Set Up for a Loved One
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleDemo}
                 disabled={loadingDemo}
-                className="border-4 border-night bg-white px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none disabled:opacity-50"
+                className="border-4 border-night bg-accent px-8 py-4 text-lg font-black uppercase text-night shadow-brutal transition-shadow hover:shadow-none disabled:opacity-50"
               >
-                {loadingDemo ? 'Loading...' : 'Try Demo'}
-              </button>
-            </div>
+                {loadingDemo ? 'Loading...' : 'Try Live Demo'}
+              </motion.button>
+            </motion.div>
 
             {error && <p className="mt-6 border-2 border-night bg-alert p-3 font-bold text-white shadow-brutal-sm">{error}</p>}
           </GlassCard>
@@ -202,14 +206,16 @@ export default function LandingPage() {
           <p className="mt-6 text-xl font-medium text-night/70">
             A beautiful, respectful way to help older adults feel known and heard, every single day.
           </p>
-          <div className="mt-12 flex justify-center gap-6">
-            <button
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-12 flex justify-center gap-6">
+            <motion.button
+              whileHover={{ scale: 1.05, rotate: -2 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => router.push('/family')}
-              className="border-4 border-night bg-accent px-10 py-5 text-xl font-black uppercase text-night shadow-[8px_8px_0_0_#111] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+              className="border-4 border-night bg-accent px-10 py-5 text-xl font-black uppercase text-night shadow-[8px_8px_0_0_#111] transition-shadow hover:shadow-none"
             >
               Start Care Hub
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
           <div className="mt-20 flex flex-col items-center justify-between gap-6 border-t-4 border-night pt-8 md:flex-row">
             <p className="text-sm font-bold uppercase text-night/60">
               Built by <a href="https://github.com/manasdutta04" target="_blank" rel="noreferrer" className="text-night underline decoration-2 underline-offset-4 hover:bg-primary hover:text-white">Manas Dutta</a>
