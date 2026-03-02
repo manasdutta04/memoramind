@@ -46,7 +46,11 @@ class DashboardService:
                 # Format timestamp nicely — take only the time portion
                 try:
                     dt = datetime.fromisoformat(ts)
-                    time_str = dt.strftime("%I:%M %p")
+                    # Convert UTC to local timezone
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    dt_local = dt.astimezone(None) # None = local machine timezone
+                    time_str = dt_local.strftime("%I:%M %p")
                 except Exception:
                     time_str = ts
                     
@@ -72,7 +76,11 @@ class DashboardService:
             ts = row.get("timestamp", "")
             try:
                 dt = datetime.fromisoformat(ts)
-                time_str = dt.strftime("%I:%M %p")
+                # Convert UTC to local timezone
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                dt_local = dt.astimezone(None)
+                time_str = dt_local.strftime("%I:%M %p")
             except Exception:
                 time_str = ts
             conversation_log.append({
