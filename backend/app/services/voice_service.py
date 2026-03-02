@@ -106,6 +106,7 @@ class VoiceService:
                 "mood": mood,
                 "distress": distress,
                 "topics": topics,
+                "emergency_alert": emergency_alert,
             },
         )
 

@@ -49,9 +49,15 @@ class DashboardService:
                     time_str = dt.strftime("%I:%M %p")
                 except Exception:
                     time_str = ts
-                distress_alerts.append(
-                    f"Distress detected at {time_str}: consider a caring phone call."
-                )
+                    
+                emergency: dict = row.get("emergency_alert") or {}
+                if "reason" in emergency:
+                    reason = emergency["reason"]
+                    severity = str(emergency.get("severity", "Critical")).title()
+                    distress_alerts.append(f"[{time_str}] {severity} Alert: {reason}")
+                else:
+                    snippet = row.get("user_text", "")[:60] + ("..." if len(row.get("user_text", "")) > 60 else "")
+                    distress_alerts.append(f"[{time_str}] Emotional Distress: Elder mentioned '{snippet}'")
 
         summary = await self.llm_service.summarize_sessions(
             elder_name=profile.get("elder_name", "Your loved one"),
