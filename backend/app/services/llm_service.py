@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
 from typing import Any
@@ -72,10 +73,11 @@ class LLMService:
 
     async def _chat_completion(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float = 0.5,
         api_key_override: str | None = None,
-    ) -> str:
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         api_key = (api_key_override or "").strip() or self.settings.mistral_api_key
         if not api_key:
             raise RuntimeError("Mistral API key is not configured. Add your key in Settings.")
@@ -91,12 +93,16 @@ class LLMService:
             "temperature": temperature,
             "max_tokens": 260,
         }
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "auto"
 
         try:
             async with httpx.AsyncClient(timeout=40.0, verify=self._httpx_verify()) as client:
                 resp = await client.post(url, headers=headers, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
+                print("[MISTRAL DEBUG] raw response data:", json.dumps(data, indent=2))
         except httpx.HTTPStatusError as exc:
             body = exc.response.text[:240] if exc.response is not None else ""
             raise RuntimeError(f"Mistral API error {exc.response.status_code}: {body}") from exc
@@ -106,11 +112,9 @@ class LLMService:
         choices = data.get("choices") or []
         if not choices:
             raise RuntimeError("Mistral returned no choices")
-        content = choices[0].get("message", {}).get("content", "")
-        if isinstance(content, list):
-            chunks = [item.get("text", "") for item in content if isinstance(item, dict)]
-            return " ".join(chunk for chunk in chunks if chunk).strip()
-        return str(content).strip()
+        
+        message = choices[0].get("message", {})
+        return message
 
     @staticmethod
     def _normalize_memory(memory: str, elder_name: str) -> str:
@@ -185,7 +189,7 @@ class LLMService:
         daily_routine: list[str] | None = None,
         history: list[dict[str, str]] | None = None,
         api_key_override: str | None = None,
-    ) -> tuple[str, bool, str | None]:
+    ) -> tuple[str, bool, str | None, dict[str, str] | None]:
         system_prompt = self.build_companion_system_prompt(
             language=language,
             memories=memories,
@@ -195,28 +199,228 @@ class LLMService:
             daily_routine=daily_routine,
         )
 
-        messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 
-        # Inject recent conversation history for multi-turn continuity
         if history:
             messages.extend(history)
 
         messages.append({"role": "user", "content": user_message})
 
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "trigger_emergency_alert",
+                    "description": "Trigger an emergency alert to the family if the elder expresses a severe physical emergency (e.g., falling down, unbearable pain, having a heart attack, or explicitly asking for an ambulance). Do NOT trigger for minor confusion or sadness.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "severity": {"type": "string", "enum": ["high", "critical"], "description": "The severity of the emergency."},
+                            "reason": {"type": "string", "description": "A short summary of what happened."}
+                        },
+                        "required": ["severity", "reason"]
+                    }
+                }
+            }
+        ]
+
         try:
-            reply = await self._chat_completion(
+            message_obj = await self._chat_completion(
                 messages=messages,
                 temperature=0.45,
                 api_key_override=api_key_override,
+                tools=tools,
             )
+            
+            # Check for tool_calls first (Emergency Intercept)
+            if "tool_calls" in message_obj and message_obj["tool_calls"]:
+                for tool in message_obj["tool_calls"]:
+                    if tool.get("function", {}).get("name") == "trigger_emergency_alert":
+                        args_str = tool["function"].get("arguments", "{}")
+                        import json
+                        try:
+                            args = json.loads(args_str)
+                        except json.JSONDecodeError:
+                            args = {"severity": "critical", "reason": "Unknown emergency"}
+                            
+                        emergency_alert = {"severity": args.get("severity", "critical"), "reason": args.get("reason", "Unknown emergency")}
+                        
+                        # Return hardcoded reassuring string + emergency alert obj
+                        return "I am alerting your family right now. Help is on the way, please sit down and take deep breaths.", False, None, emergency_alert
+
+            # Normal chat content
+            content = message_obj.get("content", "")
+            if isinstance(content, list):
+                chunks = [item.get("text", "") for item in content if isinstance(item, dict)]
+                reply = " ".join(chunk for chunk in chunks if chunk).strip()
+            else:
+                reply = str(content).strip()
+
             if reply:
-                return reply, False, None
+                return reply, False, None, None
+                
         except Exception as exc:
             error_message = str(exc)
             logger.warning("Mistral generation failed; using local fallback: %s", error_message)
-            return self._local_companion_fallback(elder_name, user_message, memories), True, error_message
+            return self._local_companion_fallback(elder_name, user_message, memories), True, error_message, None
 
-        return self._local_companion_fallback(elder_name, user_message, memories), True, "Mistral returned empty content"
+        return self._local_companion_fallback(elder_name, user_message, memories), True, "Mistral returned empty content", None
+
+    async def generate_cognitive_journal(
+        self,
+        elder_name: str,
+        language: str,
+        conversations: list[dict],
+        api_key_override: str | None = None,
+    ) -> dict:
+        """
+        Uses Mistral function-calling to generate a structured Cognitive Health Journal
+        from today's conversation data. Returns a rich JSON object for the family dashboard.
+        """
+        if not conversations:
+            return {
+                "emotional_summary": f"No conversations recorded today for {elder_name}.",
+                "flagged_moments": [],
+                "positive_anchors": [],
+                "recommended_actions": ["Encourage a short voice conversation with MemoraMind today."],
+                "cognitive_score": 5,
+                "engagements": 0,
+            }
+
+        transcript_lines = []
+        for c in conversations[-15:]:
+            mood = c.get("mood", "")
+            user = c.get("user_text", c.get("userText", ""))
+            ai = c.get("assistant_text", c.get("aiText", ""))
+            transcript_lines.append(f"[{mood}] Elder: {user}\n    MemoraMind: {ai}")
+
+        full_transcript = "\n".join(transcript_lines)
+
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "write_cognitive_journal",
+                    "description": (
+                        "Write a structured daily Cognitive Health Journal entry for a dementia care family. "
+                        "Analyze the elder's conversation transcripts and produce clinical-grade insights."
+                    ),
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "emotional_summary": {
+                                "type": "string",
+                                "description": "2-3 sentences summarizing the elder's emotional and cognitive state today, suitable for a caregiver to read."
+                            },
+                            "flagged_moments": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "List of specific moments of confusion, distress, or concerning statements (quote or paraphrase). Keep each item short."
+                            },
+                            "positive_anchors": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "List of topics, memories, or phrases that noticeably comforted or engaged the elder. These are memory anchors to use in future conversations."
+                            },
+                            "recommended_actions": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "3-4 specific, actionable recommendations for the family today (e.g. call them, play a specific song type, bring a photo album)."
+                            },
+                            "cognitive_score": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10,
+                                "description": "Overall cognitive engagement score today on a scale of 1-10. 10 = highly engaged, positive, clear recall. 1 = severe confusion or distress throughout."
+                            }
+                        },
+                        "required": ["emotional_summary", "flagged_moments", "positive_anchors", "recommended_actions", "cognitive_score"]
+                    }
+                }
+            }
+        ]
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    f"You are a professional dementia care analyst. Analyze {elder_name}'s conversations "
+                    f"and produce a structured cognitive health journal for their family caregivers. "
+                    f"Be compassionate but clinically accurate. Respond in {language}."
+                )
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Here are today's conversation transcripts for {elder_name}. "
+                    f"Please analyze them and write the cognitive journal:\n\n{full_transcript}"
+                )
+            }
+        ]
+
+        try:
+            payload: dict = {
+                "model": self.settings.mistral_model,
+                "messages": messages,
+                "temperature": 0.3,
+                "max_tokens": 800,
+                "tools": tools,
+                "tool_choice": "any",
+            }
+
+            api_key = (api_key_override or "").strip() or self.settings.mistral_api_key
+            if not api_key:
+                raise RuntimeError("No Mistral API key configured")
+
+            url = f"{self.settings.mistral_api_base}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            }
+
+            import httpx
+            async with httpx.AsyncClient(timeout=60.0, verify=self._httpx_verify()) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                resp.raise_for_status()
+                data = resp.json()
+
+            choices = data.get("choices") or []
+            if not choices:
+                raise RuntimeError("No choices returned")
+
+            message = choices[0].get("message", {})
+            tool_calls = message.get("tool_calls") or []
+
+            for tool in tool_calls:
+                if tool.get("function", {}).get("name") == "write_cognitive_journal":
+                    args_str = tool["function"].get("arguments", "{}")
+                    journal = json.loads(args_str)
+                    journal["engagements"] = len(conversations)
+                    return journal
+
+        except Exception as exc:
+            logger.warning("Cognitive journal generation failed: %s", exc)
+
+        # Fallback: build a simple journal from keyword analysis
+        distress_count = sum(1 for c in conversations if c.get("distress") or c.get("mood") == "Distressed")
+        happy_count = sum(1 for c in conversations if c.get("mood") in ["Happy", "Calm"])
+        score = max(1, min(10, 5 + happy_count - distress_count * 2))
+
+        return {
+            "emotional_summary": (
+                f"{elder_name} had {len(conversations)} conversation(s) today. "
+                f"Mood indicators suggest {'some distress periods' if distress_count > 0 else 'a relatively calm day'}."
+            ),
+            "flagged_moments": [c.get("user_text", "") for c in conversations if c.get("distress")][:3],
+            "positive_anchors": [],
+            "recommended_actions": [
+                "Check in with a brief phone call.",
+                "Remind them of a favorite memory or song.",
+                "Ensure medication and hydration routines are followed."
+            ],
+            "cognitive_score": score,
+            "engagements": len(conversations),
+        }
 
     async def summarize_sessions(
         self,
@@ -239,11 +443,19 @@ class LLMService:
         ]
 
         try:
-            reply = await self._chat_completion(
+            message_obj = await self._chat_completion(
                 messages=messages,
                 temperature=0.2,
                 api_key_override=api_key_override,
             )
+            
+            content = message_obj.get("content", "")
+            if isinstance(content, list):
+                chunks = [item.get("text", "") for item in content if isinstance(item, dict)]
+                reply = " ".join(chunk for chunk in chunks if chunk).strip()
+            else:
+                reply = str(content).strip()
+                
             if reply:
                 return reply
         except Exception as exc:

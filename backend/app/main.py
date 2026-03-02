@@ -18,6 +18,7 @@ from app.dependencies import (
     get_voice_service,
 )
 from app.models import (
+    CognitiveJournalResponse,
     DashboardResponse,
     DemoLoadResponse,
     ErrorResponse,
@@ -211,6 +212,53 @@ async def get_dashboard(
         return DashboardResponse(**response)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get(
+    "/api/journal/{elder_id}",
+    response_model=CognitiveJournalResponse,
+    responses={404: {"model": ErrorResponse}},
+)
+async def get_cognitive_journal(
+    elder_id: str,
+    mistral_key: str | None = Query(default=None),
+    mistral_api_key: str | None = Header(default=None, alias="x-mistral-api-key"),
+    data_store: JsonDataStore = Depends(get_data_store),
+) -> CognitiveJournalResponse:
+    from app.services.llm_service import LLMService
+
+    profile = data_store.get_profile(elder_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Elder '{elder_id}' not found")
+
+    resolved_key = (mistral_key or "").strip() or (mistral_api_key or "").strip() or None
+
+    elder_name = profile.get("elder_name", "Friend")
+    language = profile.get("language", "English")
+
+    conversations = data_store.get_conversations(elder_id)
+    today = datetime.now(timezone.utc).date().isoformat()
+    today_convos = [c for c in conversations if str(c.get("timestamp", "")).startswith(today)]
+
+    llm = LLMService()
+    journal = await llm.generate_cognitive_journal(
+        elder_name=elder_name,
+        language=language,
+        conversations=today_convos,
+        api_key_override=resolved_key,
+    )
+
+    return CognitiveJournalResponse(
+        elder_id=elder_id,
+        elder_name=elder_name,
+        date=today,
+        emotional_summary=journal.get("emotional_summary", ""),
+        flagged_moments=journal.get("flagged_moments", []),
+        positive_anchors=journal.get("positive_anchors", []),
+        recommended_actions=journal.get("recommended_actions", []),
+        cognitive_score=journal.get("cognitive_score", 5),
+        engagements=journal.get("engagements", len(today_convos)),
+    )
 
 
 def _configure_static_serving() -> None:

@@ -1,5 +1,6 @@
 import type {
   ApiKeys,
+  CognitiveJournalResponse,
   DashboardResponse,
   DemoResponse,
   OnboardPayload,
@@ -107,3 +108,14 @@ export async function getDashboard(elderId: string, keys: ApiKeys): Promise<Dash
   const path = `/api/dashboard/${encodeURIComponent(elderId)}${qs ? `?${qs}` : ''}`;
   return request<DashboardResponse>(path, { keys });
 }
+
+export async function getCognitiveJournal(elderId: string, keys: ApiKeys): Promise<CognitiveJournalResponse> {
+  const params = new URLSearchParams();
+  if (keys?.mistralKey?.trim()) {
+    params.set('mistral_key', keys.mistralKey.trim());
+  }
+  const qs = params.toString();
+  const path = `/api/journal/${encodeURIComponent(elderId)}${qs ? `?${qs}` : ''}`;
+  return request<CognitiveJournalResponse>(path, { keys });
+}
+

@@ -139,6 +139,62 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Technical Architecture Section */}
+      <section className="border-y-4 border-night bg-white py-24">
+        <div className="mx-auto w-full max-w-6xl px-5">
+          <div className="mb-16">
+            <h2 className="text-5xl font-black uppercase tracking-tighter md:text-6xl">Mistral Architecture</h2>
+            <p className="mt-6 max-w-2xl text-xl font-bold text-night/70">
+              Deep, native integration of Mistral's advanced capabilities for dementia care.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {/* Cognitive Journal */}
+            <div className="flex flex-col border-4 border-night bg-blue-50 shadow-[8px_8px_0_0_#111]">
+              <div className="border-b-4 border-night bg-white p-4">
+                <span className="bg-night px-2 py-1 text-xs font-black uppercase tracking-widest text-white">Function Calling</span>
+              </div>
+              <div className="p-8">
+                <h3 className="text-2xl font-black uppercase tracking-tight">Cognitive Journal</h3>
+                <p className="mt-4 font-medium leading-relaxed">
+                  Mistral's powerful tool-calling API analyzes daily transcripts to generate a structured, clinical-grade
+                  JSON object (emotional state, flagged moments, positive anchors) for the Family Dashboard in real-time.
+                </p>
+              </div>
+            </div>
+
+            {/* Emergency Interceptors */}
+            <div className="flex flex-col border-4 border-night bg-red-50 shadow-[8px_8px_0_0_#111]">
+              <div className="border-b-4 border-night bg-white p-4">
+                <span className="bg-night px-2 py-1 text-xs font-black uppercase tracking-widest text-white">Tool Execution</span>
+              </div>
+              <div className="p-8">
+                <h3 className="text-2xl font-black uppercase tracking-tight">Distress Detection</h3>
+                <p className="mt-4 font-medium leading-relaxed">
+                  The Mistral model doesn't just chat—it evaluates every utterance for severe physical or emotional
+                  emergencies. If detected, it autonomously executes a tool call to trigger a family alert overlay.
+                </p>
+              </div>
+            </div>
+
+            {/* Context Engineering */}
+            <div className="flex flex-col border-4 border-night bg-green-50 shadow-[8px_8px_0_0_#111]">
+              <div className="border-b-4 border-night bg-white p-4">
+                <span className="bg-night px-2 py-1 text-xs font-black uppercase tracking-widest text-white">Prompt Engineering</span>
+              </div>
+              <div className="p-8">
+                <h3 className="text-2xl font-black uppercase tracking-tight">Memory Injection</h3>
+                <p className="mt-4 font-medium leading-relaxed">
+                  Dynamic memory retrieval. Mistral's system prompt is continuously rebuilt with the elder's
+                  name, core life memories, daily routines, and family relationships to ground the AI in reality.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer CTA */}
       <footer className="border-t-4 border-night bg-base py-24">
         <div className="mx-auto w-full max-w-4xl px-5 text-center">

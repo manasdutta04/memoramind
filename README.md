@@ -1,48 +1,54 @@
-# MemoraMind
+<div align="center">
+  <img src="./frontend/public/icon.png" width="120" alt="MemoraMind Logo" />
+  <h1>MemoraMind</h1>
+  <p><strong>Voice-First dementia companion powered by Mistral AI</strong></p>
+  <p><i>Built for the Mistral Worldwide Hackathon 2026</i></p>
+</div>
 
-MemoraMind is a highly personalized voice companion designed specifically for memory care.
+---
 
-It helps older adults feel calm, recognized, and emotionally supported through natural voice conversations. Meanwhile, it gives families a powerful, zero-setup dashboard to monitor mood, detect distress, and track daily routines—all stored securely and instantly in the browser.
+## 🏆 The Problem & Our Solution
+Dementia isolates individuals by stealing their context. Loving someone with dementia often means constant worry and overwhelming caregiver burnout. 
 
-Built for the **Mistral 2026 Hackathon**.
+**MemoraMind** restores context by weaving highly personal memories into natural, emotionally resonant conversations. It gives older adults a warm, patient companion that *remembers who they are*, while giving family members peace of mind through a live **Cognitive Health Dashboard**.
 
-![MemoraMind Demo](./frontend/public/demo-screenshot.png) *(Preview of the Family Hub & Companion)*
+## 🧠 Deep Mistral Integration (Architecture)
 
-## ✨ What Makes MemoraMind Unique?
+We went beyond basic chat to showcase the full power of Mistral's API capabilities:
 
-MemoraMind goes beyond standard chatbots by integrating proven dementia care principles directly into the LLM system prompt and application architecture:
+### 1. Mistral Function Calling ➔ Cognitive Journal
+We implemented a novel **Cognitive Health Journal**. Mistral analyzes the raw transcripts of the elder's daily conversations and autonomously extracts structured clinical data: `emotional_summary`, `flagged_moments`, `positive_anchors`, and an overall `cognitive_score`. This transforms raw chat logs into actionable healthcare insights.
 
-1. **🚨 Real-Time Distress Alerts**: Analyzes every conversation for signs of anxiety or confusion, surfacing a pulsing alert on the Family Dashboard to enable rapid intervention.
-2. **🎵 Prescriptive Music Therapy**: The AI is instructed to suggest listening to favorite songs or humming familiar tunes when distress is detected, a proven technique to reduce anxiety in dementia patients.
-3. **💊 Proactive Gentle Reminders**: Naturally weaves routine items (like taking medicine or drinking tea) into casual conversation rather than issuing harsh, confusing commands.
-4. **📊 Visual Mood Timeline**: Evaluates the emotional sentiment of every interaction, rendering a beautiful color-coded timeline to help families track emotional trends over time.
-5. **👨‍👩‍👧‍👦 Multi-Elder Care Hub**: A centralized family dashboard allowing caregivers to manage profiles for multiple loved ones seamlessly in one place.
+### 2. Autonomous Tool Execution ➔ Distress Interceptor
+The LLM evaluates every single utterance in real-time. If the elder expresses severe physical or emotional distress ("I fell down", "I'm scared"), Mistral autonomously executes a `trigger_emergency_alert` tool, immediately pushing a pulsing red alert overlay to the Family Dashboard for rapid intervention.
 
-## 🚀 Product Experience
+### 3. Dynamic Prompt Engineering ➔ Memory Injection
+We utilize a RAG-style approach to prompt construction. The system prompt is dynamically assembled with the elder's name, core life memories, daily routines, and family relationships, grounding the AI in the elder's specific reality and preventing standard AI hallucinations.
 
-### 1. Zero-Friction Setup
-Families create a profile with important context: relationship names, meaningful life memories, daily routines, and favorite topics. **No accounts required**—everything is saved instantly to local storage.
+## 🎵 Best Voice UX (ElevenLabs)
+Voice is the only interface that works naturally for dementia care. 
+- **Premium TTS:** We integrated ElevenLabs for hyper-realistic, warm, human-like voice synthesis.
+- **Visual Feedback:** The companion UI features an animated audio waveform that pulses synchronously while ElevenLabs audio is playing, giving the elder clear visual feedback that *"MemoraMind is speaking."*
 
-### 2. The One-Button Companion
-The elder interacts with a massive, accessible "Speak" circular button. 
-MemoraMind listens, responds with kindness, keeps sentences short, validates feelings, and grounds the elder in deeply personal facts.
+## 🚀 Product Walkthrough
 
-### 3. The Caregiver Dashboard
-A rich daily digest providing:
-- Session summaries and conversation frequency.
-- The Mood Timeline chart.
-- Key recurring topics.
-- Full conversation logs with distress highlights.
+1. **Family Setup (Zero Friction):** Family inputs memories, routines, and relationships. Stored entirely locally (no accounts needed).
+2. **The Companion:** A massive, accessible "Speak" circular button. The elder speaks naturally; MemoraMind responds with kindness, validates feelings, and grounds them in personal facts.
+3. **The Family Dashboard:** A rich daily digest providing:
+    - The Mistral-generated **Cognitive Journal**
+    - A visual Mood Timeline
+    - Real-time Distress Alerts
+    - Full conversation logs
 
-## ⚙️ How It Works (Tech Stack)
+## ⚙️ Tech Stack
 
-* **LLM Engine**: Custom-prompted **Mistral** models (via Hugging Face API or local Mistral endpoints).
-* **Text-to-Speech (TTS)**: Hybrid architecture prioritizing high-quality Voice AI (like ElevenLabs when keys are provided) but falling back reliably to free, limitless Edge-TTS.
-* **Frontend**: Next.js 15, React, Tailwind CSS, Framer Motion for brutalist/high-contrast accessibility.
-* **Backend**: FastAPI (Python) managing prompt assembly, TTS generation, and memory injection.
-* **Storage**: 100% Client-side LocalStorage for absolute privacy and frictionless onboarding.
+* **LLM Engine**: Mistral Models API (function calling & chat completions)
+* **Text-to-Speech**: ElevenLabs (with Edge-TTS fallback)
+* **Frontend**: Next.js 15, React, Tailwind CSS, Framer Motion (Brutalist accessible design)
+* **Backend**: FastAPI (Python)
+* **Storage**: Client-side LocalStorage (Privacy-first)
 
-## 🏃‍♂️ Getting Started
+## 🏃‍♂️ Run it Locally
 
 ### Prerequisites
 - Node.js (v18+)
@@ -69,11 +75,10 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:3000` to start using MemoraMind. Provide your Mistral API key in the **Voice Settings** page. 
-
-## 🔗 Links
-
-- **Repository**: [https://github.com/manasdutta04/memoramind](https://github.com/manasdutta04/memoramind)
+Visit `http://localhost:3000`. Provide your API keys in the app via the **Settings** or when prompted.
+Click **"Try Demo"** on the home page to instantly load a realistic preset profile and see the family dashboard in action.
 
 ---
-*Every memory matters. Built with care.*
+<div align="center">
+  <i>Every memory matters. Built with care by <a href="https://github.com/manasdutta04">Manas Dutta</a>.</i>
+</div>

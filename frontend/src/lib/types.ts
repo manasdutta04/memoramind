@@ -35,6 +35,10 @@ export type VoiceChatResponse = {
   llm_error?: string | null;
   audio_base64: string | null;
   audio_mime_type: string | null;
+  emergency_alert?: {
+    severity: string;
+    reason: string;
+  };
 };
 
 export type ConversationLogEntry = {
@@ -70,3 +74,16 @@ export type ChatMessage = {
   topics?: string[];
   timestamp: number;
 };
+
+export type CognitiveJournalResponse = {
+  elder_id: string;
+  elder_name: string;
+  date: string;
+  emotional_summary: string;
+  flagged_moments: string[];
+  positive_anchors: string[];
+  recommended_actions: string[];
+  cognitive_score: number;
+  engagements: number;
+};
+

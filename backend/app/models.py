@@ -44,6 +44,7 @@ class VoiceChatResponse(BaseModel):
     llm_error: str | None = None
     audio_base64: str | None = None
     audio_mime_type: str | None = None
+    emergency_alert: dict[str, str] | None = None
 
 
 class ConversationEntry(BaseModel):
@@ -68,3 +69,16 @@ class DashboardResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+
+class CognitiveJournalResponse(BaseModel):
+    elder_id: str
+    elder_name: str
+    date: str
+    emotional_summary: str
+    flagged_moments: list[str]
+    positive_anchors: list[str]
+    recommended_actions: list[str]
+    cognitive_score: int
+    engagements: int
+

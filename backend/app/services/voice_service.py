@@ -73,7 +73,7 @@ class VoiceService:
         memories = self.memory_service.retrieve_memories(elder_id=elder_id, query=transcript, limit=6)
         history = self._build_history(elder_id)
 
-        assistant_text, llm_fallback, llm_error = await self.llm_service.generate_companion_reply(
+        assistant_text, llm_fallback, llm_error, emergency_alert = await self.llm_service.generate_companion_reply(
             language=profile.get("language", "English"),
             memories=memories,
             user_message=transcript,
@@ -86,6 +86,11 @@ class VoiceService:
         )
 
         mood, distress = self.insight_service.detect_mood(transcript, assistant_text)
+        
+        # Override distress to true if we intercepted a high/critical tool call
+        if emergency_alert:
+            distress = True
+            
         topics = self.insight_service.extract_topics(transcript, assistant_text)
         audio_base64, audio_mime_type, tts_fallback = await self.tts_service.synthesize(
             assistant_text,
@@ -116,4 +121,5 @@ class VoiceService:
             "tts_fallback": tts_fallback,
             "llm_fallback": llm_fallback,
             "llm_error": llm_error,
+            "emergency_alert": emergency_alert,
         }

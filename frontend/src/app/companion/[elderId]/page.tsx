@@ -36,6 +36,9 @@ export default function CompanionPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recorder = useVoiceRecorder();
 
+  const [emergency, setEmergency] = useState<{ severity: string; reason: string } | null>(null);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+
   useEffect(() => {
     if (!elderId) {
       router.push('/');
@@ -75,7 +78,6 @@ export default function CompanionPage() {
     const isHindi = language.toLowerCase().includes('hindi');
     utterance.lang = isHindi ? 'hi-IN' : 'en-US';
 
-    // Pick the best available voice — prefer warm female voices
     const voices = window.speechSynthesis.getVoices();
     const preferredNames = isHindi
       ? ['Lekha', 'Google हिन्दी', 'Neerja']
@@ -96,10 +98,14 @@ export default function CompanionPage() {
 
     utterance.rate = 0.88;
     utterance.pitch = 1.05;
+
+    utterance.onstart = () => setAudioPlaying(true);
+    utterance.onend = () => setAudioPlaying(false);
+    utterance.onerror = () => setAudioPlaying(false);
+
     window.speechSynthesis.speak(utterance);
   };
 
-  // Ensure voices are loaded (some browsers load them async)
   if (typeof window !== 'undefined' && window.speechSynthesis) {
     window.speechSynthesis.getVoices();
   }
@@ -116,10 +122,16 @@ export default function CompanionPage() {
       try {
         const source = `data:${payload.audio_mime_type};base64,${payload.audio_base64}`;
         const player = new Audio(source);
+
+        player.onplay = () => setAudioPlaying(true);
+        player.onended = () => setAudioPlaying(false);
+        player.onpause = () => setAudioPlaying(false);
+
         await player.play();
         return;
       } catch (err) {
         console.warn('[TTS Debug] ElevenLabs audio playback failed, using fallback:', err);
+        setAudioPlaying(false);
         speakFallback(payload.assistant_text);
         return;
       }
@@ -130,6 +142,10 @@ export default function CompanionPage() {
 
   const processReply = async (userText: string, payload: VoiceChatResponse) => {
     const now = Date.now();
+
+    if (payload.emergency_alert) {
+      setEmergency(payload.emergency_alert);
+    }
 
     setMessages((prev) => [
       ...prev,
@@ -210,6 +226,31 @@ export default function CompanionPage() {
 
   const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
 
+  if (emergency) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-alert p-5 text-white animate-pulse">
+        <div className="max-w-3xl border-8 border-white bg-alert p-12 text-center shadow-[16px_16px_0_0_#111]">
+          <h1 className="text-6xl font-black uppercase tracking-tighter md:text-8xl">EMERGENCY DETECTED</h1>
+          <p className="mt-8 text-2xl font-bold uppercase tracking-widest text-white/90">
+            {emergency.severity} ALARM
+          </p>
+          <div className="mt-8 border-4 border-white bg-white p-6 text-night">
+            <p className="text-xl font-black uppercase">{emergency.reason}</p>
+          </div>
+          <p className="mt-12 text-2xl font-black italic">
+            "I have alerted your family. Help is on the way. Please stay seated."
+          </p>
+          <button
+            onClick={() => setEmergency(null)}
+            className="mt-16 border-4 border-white px-8 py-4 text-xl font-black uppercase transition hover:bg-white hover:text-alert hover:shadow-[8px_8px_0_0_#111]"
+          >
+            Acknowledge & Dismiss
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="mx-auto w-full max-w-5xl px-5 py-8">
       <header className="mb-8 flex items-center justify-between gap-4 border-b-4 border-night pb-6">
@@ -228,7 +269,7 @@ export default function CompanionPage() {
           <p className="mb-8 text-base font-bold uppercase tracking-wide text-night/60">
             Press once to talk, press again to send.
           </p>
-          <MicButton state={micState} onClick={handleMic} disabled={false} />
+          <MicButton state={micState} audioPlaying={audioPlaying} onClick={handleMic} disabled={false} />
 
           {lastAssistant ? (
             <div className="mt-10 w-full border-4 border-night bg-yellow-50 px-6 py-6 shadow-brutal">
