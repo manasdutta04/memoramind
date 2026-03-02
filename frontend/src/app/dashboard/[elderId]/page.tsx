@@ -61,10 +61,12 @@ export default function DashboardPage() {
   const [journalLoading, setJournalLoading] = useState(true);
   const [journalError, setJournalError] = useState('');
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   const profile = loadProfile(elderId);
 
   useEffect(() => {
+    setMounted(true);
     if (!elderId) {
       router.push('/');
       return;
@@ -117,7 +119,7 @@ export default function DashboardPage() {
         <div>
           <p className="mb-2 inline-block bg-night px-2 py-1 text-xs font-bold uppercase tracking-widest text-white">Family Dashboard</p>
           <h1 className="text-4xl font-black uppercase tracking-tight">
-            {data?.elder_name ?? (profile?.elder_name as string) ?? 'Loved One'} — Today
+            {data?.elder_name ?? (mounted ? (profile?.elder_name as string) : undefined) ?? 'Loved One'} — Today
           </h1>
         </div>
         <div className="flex gap-4">
