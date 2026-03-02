@@ -23,7 +23,7 @@ FastAPI backend powering the MemoraMind web app. Frontend is hosted separately o
 | `CORS_ORIGINS` | Yes | Your Vercel frontend URL (e.g. `https://memoramind.vercel.app`) |
 
 <div align="center">
-  <img src="./frontend/public/icon.png" width="120" alt="MemoraMind Logo" />
+  <img src="./frontend/public/favicon.ico" width="100" alt="MemoraMind Logo" />
   <h1>MemoraMind</h1>
   <p><strong>Voice-First dementia companion powered by Mistral AI</strong></p>
   <p><i>Built for the Mistral Worldwide Hackathon 2026</i></p>
